@@ -5,6 +5,8 @@ import Home from './pages/Home'
 import './App.css'
 import Login from './pages/LoginForm'
 import Admin from './pages/Admin'
+import Quiz from './pages/Quiz'
+import Authenticate from './components/authenticate/Authenticate'
 function App() {
   // Example authentication state and logout handler
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -15,20 +17,20 @@ function App() {
   };
 
   return (
-        <div className="app-container">
-      <NavBar 
-        isAuthenticated={isAuthenticated} 
-        onLogout={handleLogout} 
-      />
+    <div className="app-container">
+      <NavBar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/authenticate" element={<Authenticate />} />
+          <Route path="/quiz" element={<Quiz />} />
+          {/* Add more routes as needed */}
         </Routes>
       </main>
-      </div>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
