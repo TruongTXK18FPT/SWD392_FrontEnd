@@ -58,7 +58,7 @@ const NavBar = ({ isAuthenticated, onLogout, userRole }: NavBarProps) => {
           {/* Main Navigation */}
           <div className="nav-section main-nav">
             <Link 
-              to="/events" 
+              to="/seminars" 
               className={`nav-item ${location.pathname === '/events' ? 'active' : ''}`}
             >
               <FaCalendarAlt />
