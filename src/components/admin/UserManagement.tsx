@@ -29,7 +29,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onAlert }) => {
           variant="primary"
           size="sm"
           icon={<FaUserPlus />}
-          onClick={() => onAlert('info', 'Add user feature coming soon')}
+          onClick={() => window.location.href = '/admin/user-create'}
         >
           Add User
         </Button>

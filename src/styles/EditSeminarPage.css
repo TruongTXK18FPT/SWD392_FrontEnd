@@ -1,0 +1,73 @@
+.seminar-form-page {
+  max-width: 800px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  color: #000;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.seminar-form-page h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  color: #000;
+}
+
+.seminar-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #000;
+}
+
+.seminar-form input,
+.seminar-form textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-top: 0.25rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #f9f9f9;
+  color: #000;
+  transition: border 0.2s;
+}
+
+.seminar-form input:focus,
+.seminar-form textarea:focus {
+  border-color: #2563eb;
+  background-color: #fff;
+  outline: none;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.form-row label {
+  flex: 1;
+  min-width: 200px;
+}
+
+.submit-btn {
+  margin-top: 2rem;
+  padding: 0.75rem 2rem;
+  background-color: #f59e0b;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1rem;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.submit-btn:hover {
+  background-color: #d97706;
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Tab from '../components/Tab';
 import Alert from '../components/Alert';
 import Button from '../components/Button';
@@ -27,8 +28,8 @@ export interface AdminStats {
 type AlertType = 'success' | 'info' | 'warning' | 'error';
 type ActiveView = 'dashboard' | 'users' | 'quizzes' | 'events' | 'analytics' | 'settings' | 
                  'premium' | 'calendar' | 'notifications';
-
 const Admin = () => {
+  const navigate = useNavigate();
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
   const [alerts, setAlerts] = useState<Array<{ id: number; type: AlertType; message: string }>>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -174,27 +175,29 @@ const Admin = () => {
             <section className="quick-actions">
               <h2>Quick Actions</h2>
               <div className="actions-grid">
-                {[
-                  { label: 'Create Quiz', icon: <FaQuestionCircle />, color: 'blue' },
-                  { label: 'Add Event', icon: <FaCalendarAlt />, color: 'green' },
-                  { label: 'Manage Users', icon: <FaUsers />, color: 'purple' },
-                  { label: 'Premium Settings', icon: <FaCrown />, color: 'gold' }
-                ].map((action, index) => (
-                  <Button
-                    key={action.label}
-                    variant="outline"
-                    size="lg"
-                    icon={action.icon}
-                    className={`quick-action-btn ${action.color}`}
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                    onClick={() => {
-                      setActiveView(action.label.toLowerCase().split(' ')[1] as ActiveView);
-                      showAlert('info', `Navigating to ${action.label}`);
-                    }}
-                  >
-                    {action.label}
-                  </Button>
-                ))}
+              {[
+                { label: 'Create Quiz', icon: <FaQuestionCircle />, color: 'blue' },
+                { label: 'Add Event', icon: <FaCalendarAlt />, color: 'green' },
+                { label: 'Manage Users', icon: <FaUsers />, color: 'purple' },
+                { label: 'Premium Settings', icon: <FaCrown />, color: 'gold' }
+              ].map((action, index) => (
+                <Button
+                key={action.label}
+                variant="outline"
+                size="lg"
+                icon={action.icon}
+                onClick={() => {
+                  if (action.label === 'Add Event') {
+                    navigate('/admin/event-create');
+                  } else {
+                    setActiveView(action.label.toLowerCase().split(' ')[1] as ActiveView);
+                    showAlert('info', `Navigating to ${action.label}`);
+                  }
+                }}
+                >
+                {action.label}
+                </Button>
+              ))}
               </div>
             </section>
           </>

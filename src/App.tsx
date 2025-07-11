@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import NavBar from './components/NavBar'
 import Home from './pages/Home'
 import './App.css'
@@ -9,6 +9,11 @@ import Quiz from './pages/Quiz'
 import Authenticate from './components/authenticate/Authenticate'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
+import SeminarListPage from './pages/SeminarListPage'
+import SeminarDetailPage from './pages/SeminarDetailPage'
+import CreateSeminarPage from './pages/CreateSeminarPage'
+import CreateUserForm from './pages/CreateUserForm'
+import EditSeminarPage from './pages/EditSeminarPage'
 function App() {
   // Example authentication state and logout handler
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -30,8 +35,23 @@ function App() {
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/event" element={<SeminarListPage />} />
+          <Route path="/seminars/:id" element={<SeminarDetailPage />} />
+          <Route path="/admin/event-create" element={<CreateSeminarPage />} />
+          <Route
+            path="/admin/user-create"
+            element={
+              <CreateUserForm
+          onCancel={() => {
+            window.location.href = '/admin';
+          }}
+              />
+            }
+          />
+          <Route path="/admin/event-edit/:id" element={<EditSeminarPage />} />
           {/* Add more routes as needed */}
         </Routes>
+        
       </main>
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaEdit, FaTrash, FaCalendarPlus } from 'react-icons/fa';
 import Button from '../Button';
-
+import { useNavigate } from 'react-router-dom';
 interface Event {
   id: string;
   title: string;
@@ -22,7 +22,7 @@ const EventManagement: React.FC<EventManagementProps> = ({ onAlert }) => {
     { id: '2', title: 'Career Counseling', duration: 60, status: 'ongoing', slot: 1, description: '1-on-1 session', price: 149 },
     { id: '3', title: 'Team Assessment', duration: 180, status: 'completed', slot: 10, description: 'Team building', price: 299 },
   ]);
-
+const navigate = useNavigate();
   return (
     <div className="management-container">
       <div className="management-header">
@@ -31,7 +31,7 @@ const EventManagement: React.FC<EventManagementProps> = ({ onAlert }) => {
           variant="primary"
           size="sm"
           icon={<FaCalendarPlus />}
-          onClick={() => onAlert('info', 'Create event feature coming soon')}
+          onClick={() => window.location.href = '/admin/event-create'}
         >
           Create Event
         </Button>
@@ -63,10 +63,8 @@ const EventManagement: React.FC<EventManagementProps> = ({ onAlert }) => {
                       variant="outline"
                       size="sm"
                       icon={<FaEdit />}
-                      onClick={() => onAlert('info', 'Edit event feature coming soon')}
+                      onClick={() => navigate(`/admin/event-edit/${event.id}`)}
                     >
-                      {/* No children, icon-only button */}
-                      {/* Provide empty children to satisfy ButtonProps */}
                       {null}
                     </Button>
                     <Button

@@ -1,0 +1,72 @@
+.seminar-detail {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  font-family: 'Segoe UI', sans-serif;
+  color: #111; /* chữ màu đen */
+  line-height: 1.6;
+}
+
+.seminar-detail h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.seminar-detail img {
+  max-width: 100%;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+}
+
+.seminar-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 1rem 0 2rem;
+}
+
+.seminar-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.seminar-links a {
+  display: inline-block;
+  margin-right: 1rem;
+  padding: 0.6rem 1rem;
+  background-color: #1a237e;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.seminar-links a:hover {
+  background-color: #3949ab;
+}
+
+.seminar-description {
+  margin-top: 1.5rem;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 600px) {
+  .seminar-detail {
+    padding: 1rem;
+  }
+
+  .seminar-meta {
+    flex-direction: column;
+  }
+
+  .seminar-links a {
+    margin-bottom: 0.5rem;
+  }
+}
