@@ -1,0 +1,593 @@
+/* Modern Tech Theme Variables */
+:root {
+  --tech-primary: #667eea;
+  --tech-secondary: #764ba2;
+  --tech-accent: #4facfe;
+  --tech-success: #43e97b;
+  --tech-warning: #ffa726;
+  --tech-danger: #ef5350;
+  --tech-dark: #1a1a2e;
+  --tech-light: #f8fafc;
+  --tech-glass: rgba(255, 255, 255, 0.1);
+  --tech-glass-border: rgba(255, 255, 255, 0.2);
+  --tech-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --tech-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.15);
+  --tech-gradient-primary: linear-gradient(135deg, var(--tech-primary) 0%, var(--tech-secondary) 100%);
+  --tech-gradient-accent: linear-gradient(135deg, var(--tech-accent) 0%, #00f2fe 100%);
+  --tech-border-radius: 16px;
+  --tech-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.seminar-list-page {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.seminar-list-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(79, 172, 254, 0.2) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.seminar-list-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.seminar-list-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.seminar-list-title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.seminar-list-subtitle {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 300;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.seminar-filter-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+  padding: 0 1rem;
+}
+
+.seminar-tab-btn {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid var(--tech-glass-border);
+  background: var(--tech-glass);
+  backdrop-filter: blur(20px);
+  border-radius: 50px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: var(--tech-transition);
+  position: relative;
+  overflow: hidden;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.seminar-tab-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--tech-gradient-primary);
+  opacity: 0;
+  transition: var(--tech-transition);
+}
+
+.seminar-tab-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.seminar-tab-btn:hover::before {
+  opacity: 0.1;
+}
+
+.seminar-tab-btn.active {
+  background: var(--tech-gradient-primary);
+  border-color: transparent;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.seminar-tab-btn.active::before {
+  opacity: 0;
+}
+
+.seminar-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  padding: 0 1rem;
+}
+
+.seminar-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: var(--tech-border-radius);
+  box-shadow: var(--tech-shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: var(--tech-transition);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.seminar-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--tech-shadow-hover);
+}
+
+.seminar-card-image-wrapper {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.seminar-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--tech-transition);
+}
+
+.seminar-card:hover .seminar-card-image {
+  transform: scale(1.05);
+}
+
+.seminar-card-image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.8) 0%,
+    rgba(118, 75, 162, 0.6) 50%,
+    rgba(79, 172, 254, 0.8) 100%
+  );
+  opacity: 0;
+  transition: var(--tech-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seminar-card:hover .seminar-card-image-overlay {
+  opacity: 1;
+}
+
+.seminar-card-preview-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(10px);
+  transition: var(--tech-transition);
+}
+
+.seminar-card-preview-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.seminar-card-content {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+}
+
+.seminar-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--tech-dark);
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.seminar-card-description {
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+.seminar-card-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: #475569;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.seminar-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.seminar-meta-item svg {
+  color: var(--tech-primary);
+  font-size: 0.9rem;
+}
+
+.seminar-card-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: var(--tech-gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  grid-column: span 2;
+  text-align: center;
+}
+
+.seminar-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.8rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1rem;
+  width: fit-content;
+  position: relative;
+  overflow: hidden;
+}
+
+.seminar-status-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.1;
+  border-radius: inherit;
+}
+
+.seminar-status-badge.upcoming {
+  background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 167, 38, 0.3);
+}
+
+.seminar-status-badge.upcoming::before {
+  background: var(--tech-gradient-primary);
+}
+
+.seminar-status-badge.ongoing {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
+}
+
+.seminar-status-badge.ongoing::before {
+  background: var(--tech-gradient-accent);
+}
+
+.seminar-status-badge.ended {
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(148, 163, 184, 0.3);
+}
+
+.seminar-card-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.seminar-action-link {
+  flex: 1;
+  text-decoration: none;
+}
+
+.seminar-action-btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  text-align: center;
+  transition: var(--tech-transition);
+  border: 2px solid transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.8rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.seminar-action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: inherit;
+  opacity: 0;
+  transition: var(--tech-transition);
+}
+
+.seminar-action-btn:hover::before {
+  opacity: 0.1;
+}
+
+.seminar-action-btn.outline {
+  background: transparent;
+  color: var(--tech-primary);
+  border-color: var(--tech-primary);
+}
+
+.seminar-action-btn.outline:hover {
+  background: var(--tech-primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.seminar-action-btn.primary {
+  background: var(--tech-gradient-primary);
+  color: white;
+  border-color: transparent;
+}
+
+.seminar-action-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.seminar-action-btn.disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+}
+
+.seminar-action-btn.disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .seminar-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .seminar-list-page {
+    padding: 1rem 0.5rem;
+  }
+  
+  .seminar-list-container {
+    padding: 0 0.5rem;
+  }
+  
+  .seminar-list-header {
+    margin-bottom: 2rem;
+  }
+  
+  .seminar-list-title {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+  
+  .seminar-list-subtitle {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+  
+  .seminar-filter-tabs {
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    padding: 0;
+  }
+  
+  .seminar-tab-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    border-radius: 25px;
+  }
+  
+  .seminar-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0;
+  }
+  
+  .seminar-card-image-wrapper {
+    height: 200px;
+  }
+  
+  .seminar-card-content {
+    padding: 1.25rem;
+  }
+  
+  .seminar-card-meta {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+  
+  .seminar-meta-item {
+    font-size: 0.8rem;
+  }
+  
+  .seminar-card-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .seminar-list-page {
+    padding: 0.5rem;
+  }
+  
+  .seminar-filter-tabs {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  
+  .seminar-tab-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  
+  .seminar-card-image-wrapper {
+    height: 180px;
+  }
+  
+  .seminar-card-content {
+    padding: 1rem;
+  }
+  
+  .seminar-card-title {
+    font-size: 1.1rem;
+  }
+  
+  .seminar-card-description {
+    font-size: 0.85rem;
+  }
+}
+
+/* Loading and Empty States */
+.seminar-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+}
+
+.seminar-empty {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.seminar-empty-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.seminar-empty-message {
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Animation for cards */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.seminar-card-animated {
+  animation: slideInUp 0.6s ease-out forwards;
+}
+
+.seminar-card-animated:nth-child(1) { animation-delay: 0.1s; }
+.seminar-card-animated:nth-child(2) { animation-delay: 0.2s; }
+.seminar-card-animated:nth-child(3) { animation-delay: 0.3s; }
+.seminar-card-animated:nth-child(4) { animation-delay: 0.4s; }
+.seminar-card-animated:nth-child(5) { animation-delay: 0.5s; }
+.seminar-card-animated:nth-child(6) { animation-delay: 0.6s; }
+
+/* Accessibility improvements */
+.seminar-tab-btn:focus,
+.seminar-action-btn:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seminar-card,
+  .seminar-tab-btn,
+  .seminar-action-btn,
+  .seminar-card-image {
+    animation: none !important;
+    transition: none !important;
+  }
+}

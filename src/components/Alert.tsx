@@ -47,7 +47,7 @@ const Alert: React.FC<AlertProps> = ({
   type = 'info',
   message,
   description,
-  duration = 4500,
+  duration = 2500,
   onClose,
   action
 }) => {
@@ -70,9 +70,7 @@ const Alert: React.FC<AlertProps> = ({
         clearInterval(interval);
       };
     }
-  }, [duration, onClose]);
-
-  if (!isVisible) return null;
+  }, [duration, onClose]);  if (!isVisible) return null;
 
   return (
     <div className={`alert alert-${type}`} role="alert">
