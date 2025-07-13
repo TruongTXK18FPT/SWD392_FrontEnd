@@ -1,77 +1,48 @@
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import '../styles/SeminarDetailPage.css';
+import { Seminar } from '../types/Seminar';
+import { fetchSeminarDetails } from '../api/SeminarApi';
+import '../styles/SeminarDetailPage.css'; // nếu có
 
-
-interface Seminar {
-  id: number;
-  title: string;
-  description: string;
-  duration: number;
-  price: number;
-  slot: number;
-  meetingUrl: string;
-  formUrl: string;
-  imageUrl: string;
-  startTime: string;
-  endTime: string;
-  status: string;
-}
-
-const SeminarDetailPage = () => {
-  const { id } = useParams<{ id: string }>();
+const SeminarDetailPage: React.FC = () => {
+  const { seminarId } = useParams<{ seminarId: string }>();
   const [seminar, setSeminar] = useState<Seminar | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Replace with real API call
-    const mock = [
-      {
-        id: 1,
-        title: 'Khám Phá Nghề Lập Trình',
-        description: 'Giới thiệu về ngành IT, backend, frontend...',
-        duration: 90,
-        price: 0,
-        slot: 100,
-        meetingUrl: 'https://meet.google.com/example1',
-        formUrl: 'https://forms.gle/example1',
-        imageUrl: '/assets/Blue-Yellow-Online-webinar-Poster-2.jpg',
-        startTime: '2025-07-10T09:00:00',
-        endTime: '2025-07-10T10:30:00',
-        status: 'UPCOMING',
-      }
-    ];
-    const found = mock.find((s) => s.id === Number(id));
-    setSeminar(found || null);
-  }, [id]);
+  if (!seminarId) {
+    console.warn('seminarId is undefined');
+    return;
+  }
 
-  if (!seminar) return <p style={{ padding: '2rem' }}>Không tìm thấy hội thảo.</p>;
+  setLoading(true);
+  fetchSeminarDetails(seminarId)
+    .then((data) => {
+      console.log('Seminar data:', data); // 👈 thêm dòng này
+      setSeminar(data);
+    })
+    .catch((err) => {
+      console.error(err);
+      alert('Không thể tải chi tiết hội thảo');
+    })
+    .finally(() => setLoading(false));
+}, [seminarId]);
+
+
+  if (loading) return <p>Đang tải dữ liệu...</p>;
+  if (!seminar) return <p>Không tìm thấy hội thảo</p>;
 
   return (
-    <div className="seminar-detail">
+    <div className="seminar-detail-page">
       <h1>{seminar.title}</h1>
-
-      <img
-        src={seminar.imageUrl}
-        alt={seminar.title}
-        className="seminar-img"
-      />
-
-      <div className="seminar-meta">
-        <span><strong>Thời gian:</strong> {new Date(seminar.startTime).toLocaleString()} - {new Date(seminar.endTime).toLocaleString()}</span>
-        <span><strong>Thời lượng:</strong> {seminar.duration} phút</span>
-        <span><strong>Giá vé:</strong> {seminar.price === 0 ? 'Miễn phí' : `${seminar.price.toLocaleString()}₫`}</span>
-        <span><strong>Số lượng:</strong> {seminar.slot} slot</span>
-      </div>
-
-      <div className="seminar-links">
-        <a href={seminar.formUrl} target="_blank" rel="noreferrer">Đăng ký</a>
-        <a href={seminar.meetingUrl} target="_blank" rel="noreferrer">Vào phòng họp</a>
-      </div>
-
-      <div className="seminar-description">
-        <strong>Mô tả:</strong>
-        <p>{seminar.description}</p>
-      </div>
+      <img src={seminar.imageUrl} alt={seminar.title} className="seminar-detail-img" />
+      <p><strong>Mô tả:</strong> {seminar.description}</p>
+      <p><strong>Thời lượng:</strong> {seminar.duration} phút</p>
+      <p><strong>Giá:</strong> {seminar.price === 0 ? 'Miễn phí' : `${seminar.price.toLocaleString()}₫`}</p>
+      <p><strong>Slot:</strong> {seminar.slot}</p>
+      <p><strong>Meeting URL:</strong> <a href={seminar.meetingUrl} target="_blank" rel="noreferrer">{seminar.meetingUrl}</a></p>
+      <p><strong>Form đăng ký:</strong> <a href={seminar.formUrl} target="_blank" rel="noreferrer">{seminar.formUrl}</a></p>
+      <p><strong>Trạng thái:</strong> {seminar.status}</p>
     </div>
   );
 };

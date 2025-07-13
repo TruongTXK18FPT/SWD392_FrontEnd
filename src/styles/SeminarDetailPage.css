@@ -1,72 +1,69 @@
-.seminar-detail {
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.seminar-detail-page {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   font-family: 'Segoe UI', sans-serif;
-  color: #111; /* chữ màu đen */
+  color: #333;
+}
+
+.seminar-detail-page h1 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #1a73e8;
+  border-left: 5px solid #1a73e8;
+  padding-left: 12px;
+}
+
+.seminar-detail-img {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.seminar-detail-page p {
+  font-size: 16px;
+  margin: 12px 0;
   line-height: 1.6;
 }
 
-.seminar-detail h1 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
+.seminar-detail-page strong {
+  color: #222;
+  font-weight: 600;
 }
 
-.seminar-detail img {
-  max-width: 100%;
-  border-radius: 12px;
-  margin: 1.5rem 0;
-}
-
-.seminar-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  margin: 1rem 0 2rem;
-}
-
-.seminar-meta span {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-  font-size: 1rem;
-}
-
-.seminar-links a {
-  display: inline-block;
-  margin-right: 1rem;
-  padding: 0.6rem 1rem;
-  background-color: #1a237e;
-  color: white;
+.seminar-detail-page a {
+  color: #1a73e8;
   text-decoration: none;
-  border-radius: 8px;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  word-break: break-word;
 }
 
-.seminar-links a:hover {
-  background-color: #3949ab;
-}
-
-.seminar-description {
-  margin-top: 1.5rem;
-  font-size: 1.1rem;
+.seminar-detail-page a:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 600px) {
-  .seminar-detail {
-    padding: 1rem;
+  .seminar-detail-page {
+    margin: 16px;
+    padding: 16px;
   }
 
-  .seminar-meta {
-    flex-direction: column;
+  .seminar-detail-page h1 {
+    font-size: 22px;
   }
 
-  .seminar-links a {
-    margin-bottom: 0.5rem;
+  .seminar-detail-img {
+    max-height: 250px;
   }
+}
+.seminar-detail-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #555;
 }

@@ -151,7 +151,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
           <Route path="/event" element={<SeminarListPage />} />
-          <Route path="/seminars/:id" element={<SeminarDetailPage />} />
+          
           <Route path="/admin/event-create" element={<CreateSeminarPage />} />
           
           <Route path="/admin/event-edit/:id" element={<EditSeminarPage />} />
@@ -159,6 +159,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route
             path="/seminars" element={<SeminarListPage />}/>
+          <Route path="/seminars/:seminarId" element={<SeminarDetailPage />} />
+
           <Route path="/premium" element={<PremiumPage isAuthenticated={isAuthenticated} />} />
           <Route
             path="/quiz"

@@ -12,10 +12,4 @@ export interface Seminar {
   status: 'PENDING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
   statusApprove: 'PENDING' | 'APPROVED' | 'REJECTED'; 
   createBy: number; 
-
-
-
-
-
-
 }
