@@ -1,363 +1,436 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import QuizIntro from '../components/quiz/QuizIntro';
 import QuizQuestion from '../components/quiz/QuizQuestion';
+import DiscQuestion from '../components/quiz/DiscQuestion';
 import QuizProgress from '../components/quiz/QuizProgress';
-import QuizResult from '../components/quiz/QuizResult';
 import QuestionList from '../components/quiz/QuestionList';
-import '../styles/Quiz.css';
+import QuizResult from '../components/quiz/QuizResult';
+import quizService, {
+    MBTIQuestion,
+    DISCQuestionSet,
+    QuizSubmissionData
+  } from '../services/quizService';
+  import '../styles/Quiz.css';
 
-interface MBTIQuestion {
-  id: number;
-  content: string;
-  type: 'E/I' | 'S/N' | 'T/F' | 'J/P';
-  options: Array<{
-    id: number;
-    text: string;
-  }>;
-}
+  type QuizType = 'MBTI' | 'DISC';
+  type DISCAnswer = { most?: 'D' | 'I' | 'S' | 'C'; least?: 'D' | 'I' | 'S' | 'C' };
+  type Answer = string | DISCAnswer;
+  
+  // Frontend result interface for the QuizResult component
+  interface TransformedResult {
+    type: string;
+    description: string;
+    careers: string[];
+    universities: string[];
+    personalityCode?: string;
+    keyTraits?: string;
+    nickname?: string;
+    scores?: any;
+  }
 
-interface DISCQuestionSet {
-  id: number;
-  choices: Array<{
-    text: string;
-    trait: 'D' | 'I' | 'S' | 'C';
-  }>;
-}
+  // Hook for responsive design
+  const useResponsive = () => {
+    const [screenSize, setScreenSize] = useState({
+      isMobile: window.innerWidth <= 480,
+      isTablet: window.innerWidth > 480 && window.innerWidth <= 768,
+      isSmallDesktop: window.innerWidth > 768 && window.innerWidth <= 1024,
+      isDesktop: window.innerWidth > 1024
+    });
 
-type Question = MBTIQuestion | DISCQuestionSet;
-
-interface DISCAnswer {
-  most?: 'D' | 'I' | 'S' | 'C';
-  least?: 'D' | 'I' | 'S' | 'C';
-}
-
-const MBTI_QUESTIONS = 60;
-const DISC_SETS = 28;
-const QUESTIONS_PER_TYPE = 15;
-
-// Type guard functions
-const isMBTIQuestion = (question: Question): question is MBTIQuestion => {
-  return 'type' in question && 'options' in question;
-};
-
-const isDISCQuestionSet = (question: Question): question is DISCQuestionSet => {
-  return 'choices' in question;
-};
-
-const generateMBTIQuestions = (): MBTIQuestion[] => {
-  const types: Array<'E/I' | 'S/N' | 'T/F' | 'J/P'> = ['E/I', 'S/N', 'T/F', 'J/P'];
-  return types.flatMap((type, typeIndex) => 
-    Array.from({ length: QUESTIONS_PER_TYPE }, (_, index) => ({
-      id: typeIndex * QUESTIONS_PER_TYPE + index,
-      content: `${type} Question ${index + 1}: Sample question content`,
-      type: type,
-      options: [
-        { id: 1, text: "Disagree" },
-        { id: 2, text: "Neutral" },
-        { id: 3, text: "Agree" }
-      ]
-    }))
-  );
-};
-
-const generateDISCQuestions = (): DISCQuestionSet[] => {
-  const traitDescriptors = {
-    D: ['Confident', 'Direct', 'Bold', 'Decisive', 'Assertive', 'Independent', 'Competitive'],
-    I: ['Friendly', 'Outgoing', 'Enthusiastic', 'Optimistic', 'Lively', 'Sociable', 'Talkative'],
-    S: ['Patient', 'Steady', 'Calm', 'Supportive', 'Reliable', 'Consistent', 'Good listener'],
-    C: ['Precise', 'Analytical', 'Systematic', 'Accurate', 'Careful', 'Organized', 'Detailed']
-  };
-
-  return Array.from({ length: DISC_SETS }, (_, index) => ({
-    id: index,
-    choices: (['D', 'I', 'S', 'C'] as const).map(trait => ({
-      text: traitDescriptors[trait][index % traitDescriptors[trait].length],
-      trait: trait
-    }))
-  }));
-};
-
-const Quiz = () => {
-  const [currentStep, setCurrentStep] = useState<'intro' | 'quiz' | 'result'>('intro');
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [mbtiAnswers, setMBTIAnswers] = useState<Record<number, string>>({});
-  const [discAnswers, setDISCAnswers] = useState<Record<number, DISCAnswer>>({});
-  const [quizType, setQuizType] = useState<'DISC' | 'MBTI'>('MBTI');
-  const [questions, setQuestions] = useState<Question[]>(() => generateMBTIQuestions());
-  const [showSubmit, setShowSubmit] = useState(false);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    console.log('Quiz type changed:', quizType);
-    const newQuestions = quizType === 'MBTI' ? generateMBTIQuestions() : generateDISCQuestions();
-    console.log('Generated questions:', newQuestions);
-    setQuestions(newQuestions);
-    setCurrentQuestion(0);
-  }, [quizType]);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login', { state: { from: '/quiz' } });
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    if (quizType === 'MBTI') {
-      setShowSubmit(Object.keys(mbtiAnswers).length === MBTI_QUESTIONS);
-    } else {
-      const completeSets = Object.values(discAnswers).filter(
-        answer => answer.most && answer.least
-      ).length;
-      setShowSubmit(completeSets === DISC_SETS);
-    }
-  }, [mbtiAnswers, discAnswers, quizType]);
-
-  const handleStartQuiz = (type: 'DISC' | 'MBTI') => {
-    console.log('Starting quiz:', type);
-    setQuizType(type);
-    setCurrentStep('quiz');
-    setMBTIAnswers({});
-    setDISCAnswers({});
-    setCurrentQuestion(0);
-  };
-
-  const handleMBTIAnswer = (questionId: number, answer: string) => {
-    setMBTIAnswers(prev => ({
-      ...prev,
-      [questionId]: answer
-    }));
-  };
-
-  const handleDISCAnswer = (setId: number, trait: 'D' | 'I' | 'S' | 'C', type: 'most' | 'least') => {
-    console.log('DISC answer:', { setId, trait, type });
-    setDISCAnswers(prev => {
-      const currentAnswer = prev[setId] || {};
-      const newAnswer = {
-        ...currentAnswer,
-        [type]: trait
+    useEffect(() => {
+      const handleResize = () => {
+        const width = window.innerWidth;
+        setScreenSize({
+          isMobile: width <= 480,
+          isTablet: width > 480 && width <= 768,
+          isSmallDesktop: width > 768 && width <= 1024,
+          isDesktop: width > 1024
+        });
       };
-      console.log('Updated DISC answers:', { ...prev, [setId]: newAnswer });
-      return { ...prev, [setId]: newAnswer };
-    });
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    return screenSize;
   };
 
-  const handleQuestionSelect = (index: number) => {
-    setCurrentQuestion(index);
-  };
+  const Quiz: React.FC = () => {
+    const [quizStep, setQuizStep] = useState<'intro' | 'questions' | 'result'>('intro');
+    const [quizType, setQuizType] = useState<QuizType | null>(null);
+    const [availableTypes, setAvailableTypes] = useState<Array<{type: QuizType; category: {id: number; name: string; description: string}}>>();
+    const [questions, setQuestions] = useState<Array<MBTIQuestion | DISCQuestionSet>>([]);
+    const [currentQuestion, setCurrentQuestion] = useState(0);
+    const [answers, setAnswers] = useState<Record<number, Answer>>({});
+    const [result, setResult] = useState<TransformedResult | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
-  const handlePreviousQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(prev => prev - 1);
-    }
-  };
+    const { type } = useParams<{ type?: string }>();
+    const { isMobile, isTablet } = useResponsive();
 
-  const handleNextQuestion = () => {
-    const totalQuestions = quizType === 'MBTI' ? MBTI_QUESTIONS : DISC_SETS;
-    if (currentQuestion < totalQuestions - 1) {
-      setCurrentQuestion(prev => prev + 1);
-    }
-  };
+    // Memoize current question to prevent unnecessary re-renders
+    const currentQuestionData = useMemo(() => {
+      return questions.length > 0 ? questions[currentQuestion] : null;
+    }, [questions, currentQuestion]);
 
-  const calculateDISCScores = () => {
-    const scores = { D: 0, I: 0, S: 0, C: 0 };
-    Object.values(discAnswers).forEach(answer => {
-      if (answer.most) scores[answer.most] += 1;
-      if (answer.least) scores[answer.least] -= 1;
-    });
-    return scores;
-  };
+    // Memoized check for question answered status
+    const isQuestionAnswered = useCallback(() => {
+      if (!currentQuestionData) return false;
 
-  const handleSubmitQuiz = async () => {
-    try {
-      if (quizType === 'MBTI') {
-        const mbtiScores = questions.reduce((scores, question, index) => {
-          if (isMBTIQuestion(question) && mbtiAnswers[index]) {
-            scores[question.type] = (scores[question.type] || 0) + 
-              (mbtiAnswers[index] === 'Agree' ? 1 : mbtiAnswers[index] === 'Disagree' ? -1 : 0);
-          }
-          return scores;
-        }, {} as Record<string, number>);
-        console.log('MBTI Scores:', mbtiScores);
-      } else {
-        const discScores = calculateDISCScores();
-        console.log('DISC Scores:', discScores);
+      const answer = answers[currentQuestionData.id];
+      if (!answer) {
+        console.log(`No answer found for question ${currentQuestionData.id}`);
+        return false;
       }
 
-      const result = {
-        type: quizType === 'MBTI' ? 'ESFJ' : 'D',
-        description: quizType === 'MBTI'
-          ? 'You are an ESFJ - The Caregiver. ESFJs are warm, organized, and harmonious, striving to help and please others.'
-          : 'You have a dominant D (Dominance) style. You are direct, results-oriented, and decisive.',
-        careers: ['Teacher', 'Healthcare Administrator', 'Social Worker', 'HR Manager'],
-        universities: ['Harvard University', 'Stanford University', 'MIT', 'Yale University']
+      if (quizType === 'DISC') {
+        const discAnswer = answer as DISCAnswer;
+        const isValid = discAnswer.most !== undefined && discAnswer.least !== undefined;
+        console.log(`DISC question ${currentQuestionData.id} validation:`, {
+          most: discAnswer.most,
+          least: discAnswer.least,
+          isValid
+        });
+        return isValid;
+      }
+
+      // For MBTI, any string answer is valid (including neutral options)
+      const isValid = typeof answer === 'string' && answer.trim().length > 0;
+      console.log(`MBTI question ${currentQuestionData.id} validation:`, {
+        answer,
+        isValid
+      });
+      return isValid;
+    }, [currentQuestionData, answers, quizType]);
+
+  // Helper function to check if a single answer is valid
+  const isAnswerValid = useCallback((answer: Answer, questionType: QuizType): boolean => {
+    if (questionType === 'DISC') {
+      const discAnswer = answer as DISCAnswer;
+      return discAnswer.most !== undefined && discAnswer.least !== undefined;
+    }
+    // For MBTI, any string answer is valid
+    return typeof answer === 'string' && answer.trim().length > 0;
+  }, []);
+
+  // Memoized check for ALL questions answered status
+  const areAllQuestionsAnswered = useCallback(() => {
+    if (questions.length === 0) return false;
+
+    const answeredCount = questions.filter(question => {
+      const answer = answers[question.id];
+      return answer && isAnswerValid(answer, quizType || 'MBTI');
+    }).length;
+
+    const allAnswered = answeredCount === questions.length;
+    console.log(`All questions answered check: ${answeredCount}/${questions.length} = ${allAnswered}`);
+    return allAnswered;
+  }, [questions, answers, quizType, isAnswerValid]);
+
+    // Fetch available quiz types on component mount
+    useEffect(() => {
+      const fetchQuizTypes = async () => {
+        try {
+          const types = await quizService.getAvailableQuizTypes();
+          setAvailableTypes(types);
+
+          // If type is provided in URL, start that quiz
+          if (type && (type === 'MBTI' || type === 'DISC')) {
+            handleStartQuiz(type);
+          }
+        } catch (error) {
+          console.error('Failed to load quiz types:', error);
+        }
       };
 
-      setCurrentStep('result');
-    } catch (error) {
-      console.error('Error submitting quiz:', error);
-    }
-  };
+      fetchQuizTypes();
+    }, [type]); // Removed dependency that was causing infinite loops
 
-  const totalQuestions = quizType === 'MBTI' ? MBTI_QUESTIONS : DISC_SETS;
-  const currentQuestionData = questions[currentQuestion];
+    const handleStartQuiz = useCallback(async (type: QuizType) => {
+      setLoading(true);
+      setQuizType(type);
+      setQuestionsLoaded(false);
 
-  const renderQuizContent = () => {
-    console.log('Rendering quiz content:', { 
-      quizType, 
-      currentQuestion, 
-      currentQuestionData,
-      questions
-    });
+      try {
+        // Ensure availableTypes is loaded
+        let types = availableTypes;
+        if (!types) {
+          console.log('Loading quiz types first...');
+          types = await quizService.getAvailableQuizTypes();
+          setAvailableTypes(types);
+        }
 
-    if (!currentQuestionData) {
-      console.log('No current question data');
-      return null;
-    }
+        // Find the category ID for the selected quiz type
+        const selectedType = types.find(t => t.type === type);
+        if (!selectedType?.category) {
+          throw new Error(`Category not found for quiz type: ${type}`);
+        }
 
-    if (quizType === 'MBTI' && isMBTIQuestion(currentQuestionData)) {
-      return (
-        <>
-          <div className="question-type-indicator">
-            Type: {currentQuestionData.type}
+        const categoryId = selectedType.category.id;
+        console.log(`Found category ID: ${categoryId} for quiz type: ${type}`);
+
+        // Get quizzes for the category
+        const quizzes = await quizService.getQuizzesByCategory(categoryId);
+
+        if (quizzes.length === 0) {
+          throw new Error('No quizzes found for this category');
+        }
+
+        // Get questions for the first quiz
+        const quizId = quizzes[0].id;
+        const transformedQuestions = await quizService.getQuestionsByQuizId(quizId);
+
+        setQuestions(transformedQuestions);
+        setQuestionsLoaded(true);
+        setQuizStep('questions');
+        setCurrentQuestion(0);
+        setAnswers({});
+      } catch (error) {
+        console.error('Failed to start quiz:', error);
+        alert(`Failed to start quiz: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      } finally {
+        setLoading(false);
+      }
+    }, [availableTypes]);
+
+    const handleAnswer = useCallback((questionId: number, answer: Answer) => {
+      setAnswers(prev => ({
+        ...prev,
+        [questionId]: answer
+      }));
+    }, []);
+
+    const handleNextQuestion = useCallback(() => {
+      if (currentQuestion < questions.length - 1) {
+        setCurrentQuestion(currentQuestion + 1);
+      }
+      // Remove the automatic submit - let user click Submit button explicitly
+    }, [currentQuestion, questions.length]);
+
+    const handlePrevQuestion = useCallback(() => {
+      if (currentQuestion > 0) {
+        setCurrentQuestion(currentQuestion - 1);
+      }
+    }, [currentQuestion]);
+
+    const handleQuestionSelect = useCallback((index: number) => {
+      setCurrentQuestion(index);
+    }, []);
+
+    const submitQuiz = useCallback(async () => {
+      setLoading(true);
+
+      try {
+        // Get the quiz ID from the category
+        const categoryId = availableTypes?.find(t => t.type === quizType)?.category.id;
+        const quizzes = await quizService.getQuizzesByCategory(categoryId || 0);
+        const quizId = quizzes[0].id;
+
+        // Convert answers to the format expected by backend (questionId -> optionId)
+        const formattedAnswers: Record<number, number> = {};
+        
+        for (const question of questions) {
+          const questionId = question.id;
+          const answer = answers[questionId];
+          
+          if (answer) {
+            if (quizType === 'MBTI') {
+              // For MBTI, the answer is the option text - we need to find the option ID
+              // This will be handled by the service layer
+              formattedAnswers[questionId] = answer as any; // Service will handle the conversion
+            } else if (quizType === 'DISC') {
+              // For DISC, we need to handle the most/least selection
+              const discAnswer = answer as DISCAnswer;
+              // Service will handle the conversion based on the most selection
+              formattedAnswers[questionId] = discAnswer as any;
+            }
+          }
+        }
+
+        // Prepare submission data - remove quizType as it's not expected by backend
+        const submissionData: QuizSubmissionData = {
+          quizId,
+          answers: formattedAnswers
+        };
+
+        // Submit quiz
+        const quizResult = await quizService.submitQuiz(submissionData);
+
+        // Transform the backend data to match frontend expectations
+        const transformedResult: TransformedResult = {
+          type: quizResult.personalityCode || 'Unknown',
+          personalityCode: quizResult.personalityCode,
+          description: quizResult.description,
+          careers: quizResult.careerRecommendations
+            ? quizResult.careerRecommendations.split(', ').filter(career => career.trim() !== '')
+            : [],
+          universities: quizResult.universityRecommendations
+            ? quizResult.universityRecommendations.split(', ').filter(uni => uni.trim() !== '')
+            : [],
+          keyTraits: quizResult.keyTraits,
+          nickname: quizResult.nickname,
+          scores: quizResult.scores
+        };
+
+        setResult(transformedResult);
+        setQuizStep('result');
+      } catch (error) {
+        console.error('Failed to submit quiz:', error);
+      } finally {
+        setLoading(false);
+      }
+    }, [availableTypes, quizType, answers, questions]);
+
+    const handleRetakeQuiz = useCallback(() => {
+      setQuizStep('intro');
+      setQuizType(null);
+      setQuestions([]);
+      setCurrentQuestion(0);
+      setAnswers({});
+      setResult(null);
+      setQuestionsLoaded(false);
+    }, []);
+
+    const renderQuizContent = useMemo(() => {
+      if (loading) {
+        return (
+          <div className="loading">
+            <div className="loading-spinner"></div>
+            <p>Đang tải câu hỏi...</p>
           </div>
-          <QuizQuestion
-            question={currentQuestionData}
-            selectedAnswer={mbtiAnswers[currentQuestion]}
-            onAnswer={handleMBTIAnswer}
-          />
-        </>
-      );
-    }
+        );
+      }
 
-    if (quizType === 'DISC' && isDISCQuestionSet(currentQuestionData)) {
-      return (
-        <div className="disc-question-set">
-          <h3 className="disc-question-title">Set {currentQuestion + 1}</h3>
-          <p className="disc-instruction">Select the option that MOST describes you and the option that LEAST describes you:</p>
-          <div className="disc-choices">
-            {currentQuestionData.choices.map((choice, index) => (
-              <div key={index} className="disc-choice">
-                <span className="choice-text">{choice.text}</span>
-                <div className="choice-buttons">
+      switch (quizStep) {
+        case 'intro':
+          return <QuizIntro onStart={handleStartQuiz} availableTypes={availableTypes} />;
+
+        case 'questions': {
+          if (!questionsLoaded || questions.length === 0) {
+            return (
+              <div className="loading">
+                <div className="loading-spinner"></div>
+                <p>Đang chuẩn bị bài trắc nghiệm...</p>
+              </div>
+            );
+          }
+
+          const question = currentQuestionData;
+          if (!question) return null;
+
+          return (
+            <div className="quiz-layout">
+              <div className="quiz-content">
+                <QuizProgress
+                  current={currentQuestion}
+                  total={questions.length}
+                  type={quizType as QuizType}
+                />
+
+                {quizType === 'MBTI' && 'content' in question ? (
+                  <QuizQuestion
+                    question={question as MBTIQuestion}
+                    selectedAnswer={answers[question.id] as string}
+                    onAnswer={handleAnswer}
+                  />
+                ) : (
+                  <DiscQuestion
+                    questionSet={question as DISCQuestionSet}
+                    selectedAnswer={answers[question.id] as DISCAnswer}
+                    onAnswer={handleAnswer}
+                  />
+                )}
+
+                <div className="quiz-navigation">
                   <button
-                    className={`choice-button most ${
-                      discAnswers[currentQuestion]?.most === choice.trait ? 'selected' : ''
-                    }`}
-                    onClick={() => handleDISCAnswer(currentQuestion, choice.trait, 'most')}
+                    className="nav-button prev-button"
+                    onClick={handlePrevQuestion}
+                    disabled={currentQuestion === 0}
                   >
-                    Most
+                    Trước
                   </button>
-                  <button
-                    className={`choice-button least ${
-                      discAnswers[currentQuestion]?.least === choice.trait ? 'selected' : ''
-                    }`}
-                    onClick={() => handleDISCAnswer(currentQuestion, choice.trait, 'least')}
-                  >
-                    Least
-                  </button>
+
+                  <span className="question-indicator">
+                    {currentQuestion + 1} of {questions.length}
+                  </span>
+
+                  <div className="nav-right-buttons">
+                    {currentQuestion < questions.length - 1 && (
+                      <button
+                        className="nav-button next-button"
+                        onClick={handleNextQuestion}
+                        disabled={!isQuestionAnswered()}
+                      >
+                        Tiếp
+                      </button>
+                    )}
+
+                    <button
+                      className="nav-button submit-button"
+                      onClick={submitQuiz}
+                      disabled={!areAllQuestionsAnswered()}
+                      style={{
+                        marginLeft: currentQuestion < questions.length - 1 ? '0.5rem' : '0',
+                        opacity: areAllQuestionsAnswered() ? 1 : 0.6
+                      }}
+                    >
+                      Nộp Bài
+                    </button>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
 
-    console.log('No matching question type');
-    return null;
-  };
-
-  return (
-    <motion.div 
-      className="quiz-container"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <AnimatePresence mode="wait">
-        {currentStep === 'intro' && (
-          <QuizIntro onStart={handleStartQuiz} />
-        )}
-
-        {currentStep === 'quiz' && questions.length > 0 && (
-          <div className="quiz-layout">
-            <motion.div
-              key="quiz"
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="quiz-content"
-            >
-              <QuizProgress 
-                current={currentQuestion + 1} 
-                total={totalQuestions}
-                type={quizType}
+              <QuestionList
+                totalQuestions={questions.length}
+                currentQuestion={currentQuestion}
+                answers={answers}
+                questions={questions} // Pass the questions array
+                onQuestionSelect={handleQuestionSelect}
+                isMobile={isMobile}
+                isTablet={isTablet}
               />
-              {renderQuizContent()}
-              <div className="quiz-navigation">
-                <button 
-                  className="nav-button previous"
-                  onClick={handlePreviousQuestion}
-                  disabled={currentQuestion === 0}
-                >
-                  Previous
-                </button>
-                <div className="question-indicator">
-                  {quizType === 'MBTI' ? (
-                    `Question ${currentQuestion + 1} of ${totalQuestions}`
-                  ) : (
-                    `Set ${currentQuestion + 1} of ${totalQuestions}`
-                  )}
-                </div>
-                <button 
-                  className="nav-button next"
-                  onClick={handleNextQuestion}
-                  disabled={currentQuestion === totalQuestions - 1}
-                >
-                  Next
-                </button>
-              </div>
-              {showSubmit && (
-                <motion.button
-                  className="submit-button"
-                  onClick={handleSubmitQuiz}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  Submit Quiz
-                </motion.button>
-              )}
-            </motion.div>
-            <QuestionList
-              totalQuestions={totalQuestions}
-              currentQuestion={currentQuestion}
-              answers={quizType === 'MBTI' ? mbtiAnswers : discAnswers}
-              onQuestionSelect={handleQuestionSelect}
+            </div>
+          );
+        }
+
+        case 'result':
+          return result ? (
+            <QuizResult
+              type={quizType as QuizType}
+              result={result}
+              onRetake={handleRetakeQuiz}
             />
-          </div>
-        )}
+          ) : null;
+      }
+    }, [
+      loading,
+      quizStep,
+      availableTypes,
+      questionsLoaded,
+      questions.length,
+      currentQuestionData,
+      currentQuestion,
+      quizType,
+      answers,
+      result,
+      handleStartQuiz,
+      handleAnswer,
+      handleNextQuestion,
+      handlePrevQuestion,
+      handleQuestionSelect,
+      submitQuiz,
+      handleRetakeQuiz,
+      isQuestionAnswered,
+      areAllQuestionsAnswered
+    ]);
 
-        {currentStep === 'result' && (
-          <QuizResult 
-            type={quizType}
-            result={{
-              type: quizType === 'MBTI' ? 'ESFJ' : 'D',
-              description: quizType === 'MBTI'
-                ? 'You are an ESFJ - The Caregiver. ESFJs are warm, organized, and harmonious, striving to help and please others.'
-                : 'You have a dominant D (Dominance) style. You are direct, results-oriented, and decisive.',
-              careers: ['Teacher', 'Healthcare Administrator', 'Social Worker', 'HR Manager'],
-              universities: ['Harvard University', 'Stanford University', 'MIT', 'Yale University']
-            }}
-          />
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-};
+    return (
+      <div className="quiz-container">
+        {renderQuizContent}
+      </div>
+    );
+  };
 
-export default Quiz;
+  export default Quiz;

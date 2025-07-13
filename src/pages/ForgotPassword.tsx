@@ -1,27 +1,31 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { FaEnvelope, FaKey, FaLock } from 'react-icons/fa';
-import Alert from '../components/Alert';
-import Login from '../assets/Login.mp4';
-import '../styles/ForgotPassword.css';
-
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate, Link } from "react-router-dom";
+import { FaEnvelope, FaKey, FaLock } from "react-icons/fa";
+import Alert from "../components/Alert";
+import Login from "../assets/Login.mp4";
+import "../styles/ForgotPassword.css";
+import {
+  resendOtp,
+  resetPassword,
+  verifyForgotOtp,
+} from "../services/authService";
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<'email' | 'otp' | 'newPassword'>('email');
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [step, setStep] = useState<"email" | "otp" | "newPassword">("email");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState<{
     show: boolean;
-    type: 'success' | 'error' | 'info';
+    type: "success" | "error" | "info";
     message: string;
   }>({
     show: false,
-    type: 'info',
-    message: ''
+    type: "info",
+    message: "",
   });
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -29,21 +33,21 @@ const ForgotPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call to check email existence
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Assume email exists
+      await resendOtp(email, "RESET_PASSWORD");
+
       setAlert({
         show: true,
-        type: 'success',
-        message: 'Mã OTP đã được gửi đến email của bạn.'
+        type: "success",
+        message: "Mã OTP đã được gửi đến email của bạn.",
       });
-      setStep('otp');
-    } catch (error) {
+      setStep("otp");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message || "Email không tồn tại trong hệ thống.";
       setAlert({
         show: true,
-        type: 'error',
-        message: 'Email không tồn tại trong hệ thống.'
+        type: "error",
+        message,
       });
     } finally {
       setIsLoading(false);
@@ -55,20 +59,22 @@ const ForgotPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call to verify OTP
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await verifyForgotOtp(email, otp);
+
       setAlert({
         show: true,
-        type: 'success',
-        message: 'Mã OTP hợp lệ. Vui lòng nhập mật khẩu mới.'
+        type: "success",
+        message: "Mã OTP hợp lệ. Vui lòng nhập mật khẩu mới.",
       });
-      setStep('newPassword');
-    } catch (error) {
+      setStep("newPassword");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Mã OTP không hợp lệ. Vui lòng thử lại.";
       setAlert({
         show: true,
-        type: 'error',
-        message: 'Mã OTP không hợp lệ. Vui lòng thử lại.'
+        type: "error",
+        message,
       });
     } finally {
       setIsLoading(false);
@@ -77,12 +83,12 @@ const ForgotPassword: React.FC = () => {
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newPassword !== confirmPassword) {
       setAlert({
         show: true,
-        type: 'error',
-        message: 'Mật khẩu xác nhận không khớp.'
+        type: "error",
+        message: "Mật khẩu xác nhận không khớp.",
       });
       return;
     }
@@ -90,26 +96,37 @@ const ForgotPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call to update password
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await resetPassword({
+        email,
+        newPassword,
+      });
+
       setAlert({
         show: true,
-        type: 'success',
-        message: 'Đổi mật khẩu thành công! Đang chuyển hướng...'
+        type: "success",
+        message: "Đổi mật khẩu thành công! Đang chuyển hướng...",
       });
 
       setTimeout(() => {
-        navigate('/login');
+        navigate("/login");
       }, 2000);
     } catch (error) {
       setAlert({
         show: true,
-        type: 'error',
-        message: 'Không thể cập nhật mật khẩu. Vui lòng thử lại sau.'
+        type: "error",
+        message: "Không thể cập nhật mật khẩu. Vui lòng thử lại sau.",
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      await resendOtp(email, "RESET_PASSWORD");
+      window.alert("Đã gửi lại mã OTP!");
+    } catch (error) {
+      window.alert("Không thể gửi lại OTP.");
     }
   };
 
@@ -119,198 +136,155 @@ const ForgotPassword: React.FC = () => {
         <video autoPlay muted loop className="forgot-password-video-background">
           <source src={Login} type="video/mp4" />
         </video>
-        <div className="forgot-password-video-overlay" />
+        <div className="forgot-password-video-overlay">
+          <AnimatePresence>
+            {alert.show && (
+              <Alert
+                type={alert.type}
+                message={alert.message}
+                duration={5000}
+                onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+              />
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
-      <motion.div 
-        className="forgot-password-content"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h1 className="forgot-password-title">Quên Mật Khẩu</h1>
+      <div className="forgot-password-content">
+        <div className="forgot-password-form-card">
+          <div className="forgot-password-header">
+            <div className="step-indicator">
+              <div className={`step ${step === "email" ? "active" : (step === "otp" || step === "newPassword") ? "completed" : ""}`}></div>
+              <div className={`step ${step === "otp" ? "active" : step === "newPassword" ? "completed" : ""}`}></div>
+              <div className={`step ${step === "newPassword" ? "active" : ""}`}></div>
+            </div>
 
-        <AnimatePresence>
-          {alert.show && (
-            <Alert
-              type={alert.type}
-              message={alert.message}
-              duration={5000}
-              onClose={() => setAlert(prev => ({ ...prev, show: false }))}
-            />
-          )}
-        </AnimatePresence>
+            <h1 className="forgot-password-title">Quên Mật Khẩu</h1>
+            <p className="forgot-password-subtitle">
+              {step === "email" && "Nhập email của bạn để nhận mã xác thực"}
+              {step === "otp" && "Nhập mã OTP đã được gửi đến email của bạn"}
+              {step === "newPassword" && "Tạo mật khẩu mới cho tài khoản của bạn"}
+            </p>
+          </div>
 
-        <AnimatePresence mode="wait">
-          {step === 'email' && (
-            <motion.form 
-              onSubmit={handleEmailSubmit}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="forgot-password-form"
-            >
-              <motion.div 
-                className="forgot-password-form-group"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+          <AnimatePresence mode="wait">
+            {step === "email" && (
+              <motion.form
+                onSubmit={handleEmailSubmit}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="forgot-password-form"
               >
-                <FaEnvelope className="forgot-password-input-icon" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Nhập email của bạn"
-                  required
-                />
-              </motion.div>
+                <div className="forgot-password-form-group">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Nhập email của bạn"
+                    required
+                    className="forgot-password-form-input"
+                  />
+                  <FaEnvelope className="forgot-password-input-icon" />
+                </div>
 
-              <motion.button
-                type="submit"
-                className="forgot-password-submit-button"
-                disabled={isLoading}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
+                <button
+                  type="submit"
+                  className="forgot-password-submit-button"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Đang xử lý..." : "Tiếp tục"}
+                </button>
+              </motion.form>
+            )}
+
+            {step === "otp" && (
+              <motion.form
+                onSubmit={handleOtpSubmit}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="forgot-password-form"
               >
-                {isLoading ? 'Đang xử lý...' : 'Tiếp tục'}
-              </motion.button>
-            </motion.form>
-          )}
+                <div className="forgot-password-form-group">
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    placeholder="Nhập mã OTP"
+                    maxLength={6}
+                    required
+                    className="forgot-password-form-input forgot-password-otp-input"
+                  />
+                  <FaKey className="forgot-password-input-icon" />
+                </div>
 
-          {step === 'otp' && (
-            <motion.form 
-              onSubmit={handleOtpSubmit}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="forgot-password-form"
-            >
-              <motion.div 
-                className="forgot-password-form-group"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+                <button
+                  type="submit"
+                  className="forgot-password-submit-button"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Đang xử lý..." : "Xác nhận"}
+                </button>
+
+                <button
+                  type="button"
+                  className="register-text-button"
+                  onClick={handleResendOtp}
+                >
+                  Chưa nhận được mã OTP? Gửi lại
+                </button>
+              </motion.form>
+            )}
+
+            {step === "newPassword" && (
+              <motion.form
+                onSubmit={handlePasswordSubmit}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="forgot-password-form"
               >
-                <FaKey className="forgot-password-input-icon" />
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  placeholder="Nhập mã OTP"
-                  maxLength={6}
-                  required
-                  className="forgot-password-otp-input"
-                />
-              </motion.div>
+                <div className="forgot-password-form-group">
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mật khẩu mới"
+                    required
+                    className="forgot-password-form-input"
+                  />
+                  <FaLock className="forgot-password-input-icon" />
+                </div>
 
-              <motion.button
-                type="submit"
-                className="forgot-password-submit-button"
-                disabled={isLoading}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                {isLoading ? 'Đang xử lý...' : 'Xác nhận'}
-              </motion.button>
+                <div className="forgot-password-form-group">
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Xác nhận mật khẩu mới"
+                    required
+                    className="forgot-password-form-input"
+                  />
+                  <FaLock className="forgot-password-input-icon" />
+                </div>
 
-              <motion.button
-                type="button"
-                className="forgot-password-text-button"
-                onClick={() => setStep('email')}
-                whileHover={{ scale: 1.05 }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                Quay lại
-              </motion.button>
-            </motion.form>
-          )}
+                <button
+                  type="submit"
+                  className="forgot-password-submit-button"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Đang xử lý..." : "Đổi mật khẩu"}
+                </button>
+              </motion.form>
+            )}
+          </AnimatePresence>
 
-          {step === 'newPassword' && (
-            <motion.form 
-              onSubmit={handlePasswordSubmit}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="forgot-password-form"
-            >
-              <motion.div 
-                className="forgot-password-form-group"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <FaLock className="forgot-password-input-icon" />
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Mật khẩu mới"
-                  required
-                />
-              </motion.div>
-
-              <motion.div 
-                className="forgot-password-form-group"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <FaLock className="forgot-password-input-icon" />
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Xác nhận mật khẩu mới"
-                  required
-                />
-              </motion.div>
-
-              <motion.button
-                type="submit"
-                className="forgot-password-submit-button"
-                disabled={isLoading}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                {isLoading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
-              </motion.button>
-
-              <motion.button
-                type="button"
-                className="forgot-password-text-button"
-                onClick={() => setStep('otp')}
-                whileHover={{ scale: 1.05 }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                Quay lại
-              </motion.button>
-            </motion.form>
-          )}
-        </AnimatePresence>
-
-        <motion.p 
-          className="forgot-password-footer"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          Đã nhớ mật khẩu? <a href="/login">Đăng nhập ngay</a>
-        </motion.p>
-      </motion.div>
+          <p className="forgot-password-footer">
+            Đã nhớ mật khẩu? <Link to="/login">Đăng nhập ngay</Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

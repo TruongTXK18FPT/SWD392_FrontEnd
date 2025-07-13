@@ -14,18 +14,24 @@ const SeminarListPage: React.FC = () => {
   const [seminars, setSeminars] = useState<Seminar[]>([]);
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED'>('ALL');
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Fetch seminars from the API
     fetchApprovedSeminars()
-      .then((data) => setSeminars(data))
+      .then((data) => {
+        setSeminars(data);
+        setLoading(false);
+      })
       .catch((err) => {
         console.error(err);
         alert('Không thể tải danh sách hội thảo');
+        setLoading(false);
       });
   }, []);
 
   const filteredSeminars = seminars.filter(
-    (s) => filter === 'ALL' || s.status === filter
+    (seminar) => filter === 'ALL' || seminar.status === filter
   );
 
   const getStatusBadge = (status: Seminar['status']) => {
@@ -38,8 +44,33 @@ const SeminarListPage: React.FC = () => {
         return <span className="badge ended">Đã kết thúc</span>;
       case 'CANCELLED':
         return <span className="badge cancelled">Đã hủy</span>;
+      default:
+        return null;
     }
   };
+
+  const getTabLabel = (key: string) => {
+    switch (key) {
+      case 'ALL': return 'Tất cả';
+      case 'PENDING': return 'Chờ duyệt';
+      case 'ONGOING': return 'Đang diễn ra';
+      case 'COMPLETED': return 'Đã kết thúc';
+      case 'CANCELLED': return 'Đã hủy';
+      default: return key;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="seminar-list-page">
+        <div className="seminar-list-container">
+          <div className="seminar-loading">
+            <div>Đang tải danh sách hội thảo...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="seminar-page">
@@ -52,13 +83,7 @@ const SeminarListPage: React.FC = () => {
             className={`tab-btn ${filter === key ? 'active' : ''}`}
             onClick={() => setFilter(key as Seminar['status'] | 'ALL')}
           >
-            {{
-              ALL: 'Tất cả',
-              PENDING: 'Chờ duyệt',
-              ONGOING: 'Đang diễn ra',
-              COMPLETED: 'Đã kết thúc',
-              CANCELLED: 'Đã hủy'
-            }[key as keyof typeof SeminarStatusText]}
+            {getTabLabel(key)}
           </button>
         ))}
       </div>
@@ -101,15 +126,6 @@ const SeminarListPage: React.FC = () => {
       </div>
     </div>
   );
-};
-
-// Optional
-const SeminarStatusText = {
-  ALL: 'Tất cả',
-  PENDING: 'Chờ duyệt',
-  ONGOING: 'Đang diễn ra',
-  COMPLETED: 'Đã kết thúc',
-  CANCELLED: 'Đã hủy',
 };
 
 export default SeminarListPage;
