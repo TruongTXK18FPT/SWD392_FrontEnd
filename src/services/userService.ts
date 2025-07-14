@@ -3,7 +3,7 @@ import { getToken } from "./localStorageService";
 
 export const getCurrentUser = async () => {
   const token = getToken();
-  const response = await axios.get("http://localhost:8080/api/v1/authenticate/users/me", {
+  const response = await axios.get("http://localhost:8072/swd391/user/users/me", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -20,7 +20,7 @@ export const updateProfile = async (data: {
   districtCode?: number;
 }): Promise<void> => {
   const token = getToken();
-  
+
   try {
     await axios.post("http://localhost:8080/api/v1/authenticate/users/complete-profile", data, {
       headers: {

@@ -3,7 +3,7 @@ import { getToken, setToken, removeToken } from "./localStorageService";
 import { refreshAccessToken } from "./authService";
 
 const instance = axios.create({
-  baseURL: "http://localhost:8080/api/v1", // Đặt baseURL theo gateway
+  baseURL: "http://localhost:8072", // Use gateway root, not /api/v1
 });
 
 let isRefreshing = false;

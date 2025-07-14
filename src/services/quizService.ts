@@ -72,7 +72,7 @@ export interface QuizResult {
 }
 
 class QuizService {
-  private baseURL = 'http://localhost:8080/api/v1/quiz';
+  private baseURL = 'http://localhost:8072/swd391/quiz';
 
   // Client-side cache for better performance
   private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();

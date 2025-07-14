@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 // Login
 export const login = async (email: string, password: string): Promise<void> => {
   const response = await axios.post(
-    "http://localhost:8080/api/v1/authenticate/auth/token",
+    "http://localhost:8072/swd391/user/authentication/login",
     {
       email,
       password,
@@ -21,7 +21,7 @@ export const refreshAccessToken = async (): Promise<string> => {
   const currentToken = getToken();
 
   const response = await axios.post(
-    "http://localhost:8080/api/v1/authenticate/auth/refresh",
+    "http://localhost:8080/swd391/user/authentication/refresh",
     {
       token: currentToken,
     }
@@ -34,11 +34,16 @@ export const refreshAccessToken = async (): Promise<string> => {
 export const logOut = async () => {
   const currentToken = getToken();
 
-
   try {
-    await axios.post("http://localhost:8080/api/v1/authenticate/auth/logout", {
-      token: currentToken,
-    });
+    await axios.post(
+        "http://localhost:8072/swd391/user/authentication/logout",
+        { token: currentToken },
+        {
+          headers: {
+            Authorization: `Bearer ${currentToken}`,
+          },
+        }
+    );
   } catch (error) {
     console.error("Logout failed:", error);
   }
@@ -73,7 +78,7 @@ export interface UserCreationRequest {
 
 export const registerUser = async (user: UserCreationRequest): Promise<any> => {
   const response = await axios.post(
-    "http://localhost:8080/api/v1/authenticate/users",
+    "http://localhost:8080/swd391/user/authentication/register",
     user
   );
   return response.data.result;
