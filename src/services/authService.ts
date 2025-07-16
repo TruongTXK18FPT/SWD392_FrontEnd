@@ -136,4 +136,38 @@ export const verifyForgotOtp = async (
     }
   );
 };
+// 🎯 Gửi OTP chỉ với email
+export const sendResetOtpNew = async (email: string) => {
+  const params = new URLSearchParams();
+  params.append("email", email);
+
+  return axios.post("http://localhost:8072/swd391/user/otp/send", params, {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+  });
+};
+
+// 🎯 Xác minh OTP
+export const verifyResetOtpNew = async (email: string, otp: string) => {
+  return axios.post(
+    `http://localhost:8072/swd391/user/otp/verify?email=${email}&otp=${otp}`
+  );
+};
+
+// 🎯 Reset mật khẩu mới
+export const resetPasswordNewApi = async (
+  email: string,
+  newPassword: string,
+  confirmPassword: string
+) => {
+  return axios.post(`http://localhost:8072/swd391/user/otp/reset-password?email=${encodeURIComponent(email)}`, {
+    newPassword,
+    confirmPassword,
+  });
+};
+
+
+
+
 
