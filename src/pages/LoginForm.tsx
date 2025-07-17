@@ -7,7 +7,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import "../styles/LoginForm.css";
 import Login from "../assets/Login.mp4";
 import OAuthConfig from "../configurations/configuration";
-import { login, resendOtp, verifyOtp } from "../services/authService";
+import { login, resendOtp } from "../services/authService";
 import { getCurrentUser } from "../services/userService";
 
 interface LoginPageProps {

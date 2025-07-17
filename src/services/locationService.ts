@@ -1,75 +1,60 @@
 import axios from "axios";
 import { getToken } from "./localStorageService";
 
-// Types for location data
+// Cấu hình base URL cho API backend của bạn
+const api = axios.create({
+    baseURL: "http://localhost:8072/swd391/user/api/locations",
+});
+
+const getAuthHeaders = () => {
+    const token = getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+// Types cho dữ liệu vị trí
 interface LocationData {
-    code: string;
+    code: number;
     name: string;
 }
 
-const fetchProvinceName = async (provinceId: string): Promise<string> => {
-    const response = await fetch(
-        `https://provinces.open-api.vn/api/p/${provinceId}`
-    );
-    if (!response.ok) {
-        throw new Error("Failed to fetch province name");
-    }
-    const data: LocationData = await response.json();
-    return data.name;
+// Interface cho response từ Vietnam Provinces API
+interface ProvinceWithDistricts extends LocationData {
+    districts: LocationData[];
+}
+
+// Lấy danh sách tỉnh/thành từ backend
+export const fetchProvincesFromAPI = async (): Promise<LocationData[]> => {
+    const response = await api.get<LocationData[]>("/provinces", {
+        headers: getAuthHeaders(),
+    });
+    return response.data;
 };
 
-const fetchDistrictName = async (districtId: string): Promise<string> => {  
-    const response = await fetch(
-        `https://provinces.open-api.vn/api/d/${districtId}`
-    );
-    if (!response.ok) {
-        throw new Error("Failed to fetch district name");
+// Lấy danh sách quận/huyện từ backend
+export const fetchDistrictsFromAPI = async (provinceCode: string): Promise<LocationData[]> => {
+    try {
+        const response = await api.get<ProvinceWithDistricts>(`/provinces/${provinceCode}/districts`, {
+            headers: getAuthHeaders(),
+        });
+
+        // Kiểm tra xem response có districts property không
+        if (response.data && response.data.districts && Array.isArray(response.data.districts)) {
+            return response.data.districts;
+        } else {
+            // Nếu không có districts property hoặc không phải array, trả về empty array
+            console.warn("Districts data structure is different than expected:", response.data);
+            return [];
+        }
+    } catch (error) {
+        console.error("Error fetching districts for province code", provinceCode, ":", error);
+        // Trả về empty array thay vì throw error để không crash UI
+        return [];
     }
-    const data: LocationData = await response.json();
-    return data.name;
 };
 
-// Helper function to format location names by removing prefix
+// Hàm này không còn cần thiết nữa vì frontend sẽ có toàn bộ danh sách
+// và có thể tự tìm tên, nhưng bạn có thể giữ lại nếu muốn
 export const formatLocationName = (fullName: string): string => {
     const parts = fullName.split(' ');
     return parts.length > 1 ? parts.slice(1).join(' ') : fullName;
-};
-
-// Cache for location names to avoid repeated API calls
-const locationCache = new Map<string, string>();
-
-export const getProvinceName = async (provinceCode: number): Promise<string> => {
-    const cacheKey = `province_${provinceCode}`;
-    
-    if (locationCache.has(cacheKey)) {
-        return locationCache.get(cacheKey)!;
-    }
-    
-    try {
-        const fullName = await fetchProvinceName(provinceCode.toString());
-        const formattedName = formatLocationName(fullName);
-        locationCache.set(cacheKey, formattedName);
-        return formattedName;
-    } catch (error) {
-        console.error(`Error fetching province name for code ${provinceCode}:`, error);
-        return `Mã tỉnh: ${provinceCode}`;
-    }
-};
-
-export const getDistrictName = async (districtCode: number): Promise<string> => {
-    const cacheKey = `district_${districtCode}`;
-    
-    if (locationCache.has(cacheKey)) {
-        return locationCache.get(cacheKey)!;
-    }
-    
-    try {
-        const fullName = await fetchDistrictName(districtCode.toString());
-        const formattedName = formatLocationName(fullName);
-        locationCache.set(cacheKey, formattedName);
-        return formattedName;
-    } catch (error) {
-        console.error(`Error fetching district name for code ${districtCode}:`, error);
-        return `Mã quận/huyện: ${districtCode}`;
-    }
 };
