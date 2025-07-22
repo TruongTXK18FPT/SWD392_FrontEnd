@@ -20,12 +20,14 @@ import {
   updateSeminarStatus, 
   CreateSeminarRequest 
 } from '../api/SeminarApi';
+import { getCurrentUser } from '../services/userService';
 
 const EventManagerPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'view' | 'create'>('view');
   const [seminars, setSeminars] = useState<Seminar[]>([]);
   const [loading, setLoading] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [alert, setAlert] = useState<{
     show: boolean;
     type: 'success' | 'error' | 'warning';
@@ -53,7 +55,30 @@ const EventManagerPage: React.FC = () => {
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    fetchSeminars();
+    const fetchData = async () => {
+      try {
+        // Fetch current user and seminars in parallel
+        const [userData, seminarsData] = await Promise.all([
+          getCurrentUser(),
+          fetchAllSeminars()
+        ]);
+        
+        setCurrentUser(userData);
+        setSeminars(seminarsData);
+      } catch (error) {
+        console.error('Failed to fetch initial data:', error);
+        setAlert({
+          show: true,
+          type: 'error',
+          message: 'Không thể tải dữ liệu',
+          description: 'Vui lòng thử lại sau',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const fetchSeminars = async () => {
@@ -177,6 +202,11 @@ const EventManagerPage: React.FC = () => {
 
     setFormLoading(true);
     try {
+      // Check if user is available
+      if (!currentUser?.id) {
+        throw new Error('User not authenticated');
+      }
+
       const seminarData: CreateSeminarRequest = {
         ...formData,
         startingTime: formatDateTimeForAPI(formData.startingTime),
@@ -189,9 +219,10 @@ const EventManagerPage: React.FC = () => {
       console.log('📅 Formatted times for API:');
       console.log('  startingTime:', seminarData.startingTime);
       console.log('  endingTime:', seminarData.endingTime);
-      console.log('📄 Complete seminar data being sent:', JSON.stringify(seminarData, null, 2));
+      console.log('� Current user ID:', currentUser.id);
+      console.log('�📄 Complete seminar data being sent:', JSON.stringify(seminarData, null, 2));
 
-      await createSeminar(seminarData);
+      await createSeminar(seminarData, currentUser.id);
       
       setAlert({
         show: true,

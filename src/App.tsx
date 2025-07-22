@@ -24,18 +24,6 @@ import { logOut } from "./services/authService";
 import EditSeminarPage from './pages/EditSeminarPage'
 import CreateSeminarPage from './pages/CreateSeminarPage'
 import SeminarDetailPage from './pages/SeminarDetailPage'
-import PaymentRedirectHandler from './pages/PaymentRedirectHandler'
-import EventManagerPage from './pages/EventManagerPage'
-import PersonalityPage from "./pages/PersonalityPages";
-import About from "./pages/About";
-import Careers from "./pages/Careers";
-import Contact from "./pages/Contact";
-import Products from "./pages/Products";
-import Solutions from "./pages/Solutions";
-import Support from "./pages/Support";
-
-
-
 
 
 interface User {
@@ -162,25 +150,13 @@ function App() {
           />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
-
+          <Route path="/event" element={<SeminarListPage />} />
           
           <Route path="/admin/event-create" element={<CreateSeminarPage />} />
           
           <Route path="/admin/event-edit/:id" element={<EditSeminarPage />} />
-          <Route path="/personality" element={<PersonalityPage />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/careers" element={<Careers />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/solutions" element={<Solutions />} />
-          <Route path="/support" element={<Support />} />
-          
-          {/* Public Routes */}
-          
-          {/* Protected Routes */}
 =======
           <Route path="/register" element={<Register />} />
-          <Route path="/payment-redirect" element={<PaymentRedirectHandler />} />
           <Route
             path="/seminars" element={<SeminarListPage />}/>
           <Route path="/seminars/:seminarId" element={<SeminarDetailPage />} />
@@ -225,19 +201,6 @@ function App() {
                 requireExactRole={true}
               >
                 <ParentDashBoard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/event-manager"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                userRole={user?.role?.toLowerCase()}
-                requiredRole="event_manager"
-                requireExactRole={true}
-              >
-                <EventManagerPage />
               </ProtectedRoute>
             }
           />

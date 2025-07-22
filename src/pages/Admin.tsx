@@ -6,6 +6,7 @@ import {
  FaArrowUp,
 } from 'react-icons/fa';
 import QuizManagement from '../components/admin/QuizManagement';
+import UserManagement from '../components/admin/UserManagement';
 import '../styles/Admin.css';
 import UniversityManagementPage from '@/components/admin/UniversityManagementPage';
 import CareerManagement from '@/components/admin/CareerManagement';
@@ -50,12 +51,16 @@ const Admin = () => {
 
   const renderContent = () => {
     switch (activeView) {
+      case 'users':
+        return <UserManagement />;
       case 'quizzes':
         return <QuizManagement onAlert={showAlert} />;
       case 'universities':
         return <UniversityManagementPage/>;
       case 'careers':
         return <CareerManagement/>;
+      default:
+        return null;
     }
   };
 

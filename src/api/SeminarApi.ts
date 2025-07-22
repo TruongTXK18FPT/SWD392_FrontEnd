@@ -150,10 +150,11 @@ export const fetchMyTickets = async (userId: number): Promise<UserTicket[]> => {
   return data;
 };
 
-export const createSeminar = async (seminarData: CreateSeminarRequest): Promise<Seminar> => {
+export const createSeminar = async (seminarData: CreateSeminarRequest, userId: number): Promise<Seminar> => {
   const token = getToken();
   const headers: any = {
     'Content-Type': 'application/json',
+    'X-User-Id': userId.toString(),
   };
 
   // Add Authorization header if token exists
@@ -165,6 +166,7 @@ export const createSeminar = async (seminarData: CreateSeminarRequest): Promise<
   console.log('📅 StartingTime:', seminarData.startingTime);
   console.log('📅 EndingTime:', seminarData.endingTime);
   console.log('🔑 Authorization token present:', !!token);
+  console.log('👤 User ID:', userId);
   console.log('📋 All request fields:');
   Object.entries(seminarData).forEach(([key, value]) => {
     console.log(`  ${key}: "${value}" (${typeof value})`);
