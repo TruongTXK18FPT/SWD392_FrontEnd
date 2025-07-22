@@ -17,7 +17,7 @@ type ActiveView = 'users' | 'quizzes' | 'events' |
                   'universities'| 'careers';
 
 const Admin = () => {
-  const [activeView, setActiveView] = useState<ActiveView>('quizzes');
+  const [activeView, setActiveView] = useState<ActiveView>('users');
   const [alerts, setAlerts] = useState<Array<{ id: number; type: AlertType; message: string }>>([]);
   const [showScrollTop, setShowScrollTop] = useState(false);
   useEffect(() => {
