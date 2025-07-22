@@ -24,6 +24,8 @@ import { logOut } from "./services/authService";
 import EditSeminarPage from './pages/EditSeminarPage'
 import CreateSeminarPage from './pages/CreateSeminarPage'
 import SeminarDetailPage from './pages/SeminarDetailPage'
+import PaymentRedirectHandler from './pages/PaymentRedirectHandler'
+import EventManagerPage from './pages/EventManagerPage'
 
 
 interface User {
@@ -157,6 +159,7 @@ function App() {
           <Route path="/admin/event-edit/:id" element={<EditSeminarPage />} />
 =======
           <Route path="/register" element={<Register />} />
+          <Route path="/payment-redirect" element={<PaymentRedirectHandler />} />
           <Route
             path="/seminars" element={<SeminarListPage />}/>
           <Route path="/seminars/:seminarId" element={<SeminarDetailPage />} />
@@ -201,6 +204,19 @@ function App() {
                 requireExactRole={true}
               >
                 <ParentDashBoard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/event-manager"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                userRole={user?.role?.toLowerCase()}
+                requiredRole="event_manager"
+                requireExactRole={true}
+              >
+                <EventManagerPage />
               </ProtectedRoute>
             }
           />

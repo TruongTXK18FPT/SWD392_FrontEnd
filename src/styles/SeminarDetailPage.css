@@ -67,3 +67,161 @@
   font-size: 14px;
   color: #555;
 }
+
+/* Booking Section Styles */
+.booking-section {
+  margin-top: 32px;
+  padding: 24px;
+  background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%);
+  border-radius: 12px;
+  border: 1px solid #e1f5fe;
+}
+
+.booking-section h3 {
+  font-size: 22px;
+  color: #1a73e8;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.auth-warning {
+  text-align: center;
+  padding: 24px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  color: #856404;
+}
+
+.auth-warning p {
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+
+.booking-form {
+  max-width: 500px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.character-counter {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.character-limit-warning {
+  color: #ff6b6b;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.description-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+.description-input:focus {
+  outline: none;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+.booking-summary {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 20px 0;
+  border: 1px solid #e0e0e0;
+}
+
+.booking-summary h4 {
+  margin-bottom: 12px;
+  color: #1a73e8;
+  font-size: 16px;
+}
+
+.booking-summary p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.book-button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.book-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.retry-button {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background-color: transparent;
+  border: 2px solid #1a73e8;
+  color: #1a73e8;
+}
+
+.retry-button:hover {
+  background-color: #f8faff;
+}
+
+.booking-disabled {
+  text-align: center;
+  padding: 24px;
+  background: #ffebee;
+  border: 1px solid #ffcdd2;
+  border-radius: 8px;
+  color: #c62828;
+}
+
+.booking-disabled p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.seminar-header {
+  margin-bottom: 24px;
+}
+
+.seminar-info {
+  margin-bottom: 24px;
+}
+
+.seminar-info p {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.seminar-info p:last-child {
+  border-bottom: none;
+}

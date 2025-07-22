@@ -7,7 +7,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import "../styles/LoginForm.css";
 import Login from "../assets/Login.mp4";
 import OAuthConfig from "../configurations/configuration";
-import { login, resendOtp } from "../services/authService";
+import { login, resendOtp, verifyResetOtpNew } from "../services/authService";
 import { getCurrentUser } from "../services/userService";
 
 interface LoginPageProps {
@@ -84,8 +84,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           if (userRole && userRole.toLowerCase() === "admin") {
             console.log("Redirecting admin to /admin");
             navigate("/admin");
+          } else if (userRole && userRole.toLowerCase() === "event_manager") {
+            console.log("Redirecting event manager to /event-manager");
+            navigate("/event-manager");
           } else {
-            console.log("Redirecting non-admin to /");
+            console.log("Redirecting user to /");
             navigate("/");
           }
         } catch (error) {
@@ -142,7 +145,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const handleVerifyOtp = async () => {
     setIsLoading(true);
     try {
-      await verifyOtp({ email: unverifiedEmail, otpCode: otp });
+      await verifyResetOtpNew(unverifiedEmail, otp);
       setAlert({
         show: true,
         type: "success",

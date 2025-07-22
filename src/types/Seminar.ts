@@ -8,6 +8,8 @@ export interface Seminar {
   slot: number;
   imageUrl: string;
   meetingUrl: string;
+  startingTime: string;
+  endingTime: string;
   formUrl: string;
   status: 'PENDING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
   statusApprove: 'PENDING' | 'APPROVED' | 'REJECTED'; 

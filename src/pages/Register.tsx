@@ -14,7 +14,7 @@ import Alert from "../components/Alert";
 import LoadingSpinner from "../components/LoadingSpinner";
 import loginVideo from "../assets/Login.mp4";
 import "../styles/Register.css";
-import { registerUser, resendOtp, } from "../services/authService";
+import { registerUser, resendOtp, verifyResetOtpNew } from "../services/authService";
 
 interface LocationData {
   code: string;
@@ -126,7 +126,7 @@ const Register: React.FC = () => {
     setAlert({ show: false, type: "success", message: "" });
     
     try {
-      await verifyOtp({ email: emailToVerify, otpCode: otp });
+      await verifyResetOtpNew(emailToVerify, otp);
       setAlert({
         show: true,
         type: "success",
