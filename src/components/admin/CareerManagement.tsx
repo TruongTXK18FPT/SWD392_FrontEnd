@@ -105,7 +105,7 @@ const CareerManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
 const itemsPerPage = 9;
 
-  const baseUrl = 'http://localhost:8080/api/v1/career/careers';
+  const baseUrl = 'http://localhost:8072/swd391/career/careers';
 
   // --- Helper Functions ---
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {

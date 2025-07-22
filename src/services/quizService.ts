@@ -350,7 +350,7 @@ class QuizService {
         } as MBTIQuestion;
       });
     } else {
-      // DISC questions - group options by question
+
       result = backendQuestions.map(q => {
         return {
           id: q.id,
@@ -363,13 +363,11 @@ class QuizService {
       });
     }
 
-    // Cache the transformation result
     this.transformationCache.set(cacheKey, result);
 
     return result;
   }
 
-  // Helper method to determine MBTI type from dimension
   private determineMBTIType(dimension: string): 'E/I' | 'S/N' | 'T/F' | 'J/P' {
     switch (dimension) {
       case 'E': case 'I': return 'E/I';
@@ -380,18 +378,15 @@ class QuizService {
     }
   }
 
-  // Enhanced quiz submission with secure microservices integration
   async submitQuiz(submissionData: QuizSubmissionData): Promise<QuizResult> {
     const { quizId, answers: frontendAnswers } = submissionData;
 
-    // Get backend questions to map answers to optionIds
     const backendQuestions = await this.fetchAPI<BackendQuizQuestion[]>(
         `/quiz-questions/quiz/${quizId}`,
         {},
         this.QUESTIONS_CACHE_TTL
     );
 
-    // Determine quiz type from first question
     const firstQuestion = backendQuestions[0];
     if (!firstQuestion) {
       throw new Error('No questions found for this quiz');
@@ -399,7 +394,6 @@ class QuizService {
 
     const quizType: 'MBTI' | 'DISC' = firstQuestion.dimension === 'DISC' ? 'DISC' : 'MBTI';
 
-    // Convert answers to the format expected by backend (questionId -> optionId)
     const formattedAnswers: Record<number, number> = {};
 
     for (const backendQuestion of backendQuestions) {
@@ -408,17 +402,17 @@ class QuizService {
 
       if (answer) {
         if (quizType === 'MBTI') {
-          // For MBTI, find the option that matches the selected text
+
           const selectedOption = backendQuestion.options.find(opt => opt.optionText === answer);
           if (selectedOption) {
             formattedAnswers[questionId] = selectedOption.id;
           }
         } else if (quizType === 'DISC') {
-          // For DISC, handle the most/least selection
+
           const discAnswer = answer as { most?: 'D' | 'I' | 'S' | 'C', least?: 'D' | 'I' | 'S' | 'C' };
 
           if (discAnswer.most) {
-            // Find the option that matches the "most" selection
+
             const mostOption = backendQuestion.options.find(opt => opt.targetTrait === discAnswer.most);
             if (mostOption) {
               formattedAnswers[questionId] = mostOption.id;
@@ -571,11 +565,7 @@ class QuizService {
       throw error;
     }
   }
-  /**
-   * Get detailed quiz result by ID
-   * @param resultId The ID of the quiz result to fetch
-   * @returns A promise that resolves to the quiz result details
-   */
+
   async getQuizResultById(resultId: number): Promise<QuizResult> {
     try {
       // Fetch the detailed result from the backend
@@ -614,7 +604,7 @@ class QuizService {
       throw error;
     }
   }
-  // Get all quizzes for management
+
   async getAllQuizzes(): Promise<QuizData[]> {
     return this.fetchAPI<QuizData[]>('/quiz', {}, this.DEFAULT_CACHE_TTL);
   }
@@ -674,29 +664,9 @@ class QuizService {
     });
   }
 
-  // Delete quiz question
-  async deleteQuizQuestion(questionId: number): Promise<void> {
-    this.cache.clear();
-    return this.fetchAPI<void>(`/quiz-questions/${questionId}`, {
-      method: 'DELETE'
-    });
-  }
-
-  // === Quiz Options Management Functions ===
-
   // Get options by question ID
   async getOptionsByQuestionId(questionId: number): Promise<QuizOptionsDTO[]> {
     return this.fetchAPI<QuizOptionsDTO[]>(`/quiz-options/question/${questionId}`, {}, this.DEFAULT_CACHE_TTL);
-  }
-
-  // Get options by multiple question IDs
-  async getOptionsByQuestionIds(questionIds: number[]): Promise<QuizOptionsDTO[]> {
-    return this.fetchAPI<QuizOptionsDTO[]>(`/quiz-options/questions?questionIds=${questionIds.join(',')}`, {}, this.DEFAULT_CACHE_TTL);
-  }
-
-  // Get specific option by ID
-  async getOptionById(optionId: number): Promise<QuizOptionsDTO> {
-    return this.fetchAPI<QuizOptionsDTO>(`/quiz-options/${optionId}`, {}, this.DEFAULT_CACHE_TTL);
   }
 
   // Create a new quiz option
@@ -726,49 +696,6 @@ class QuizService {
     });
   }
 
-  // Delete a quiz option
-  async deleteQuizOption(optionId: number): Promise<void> {
-    this.cache.clear();
-    return this.fetchAPI<void>(`/quiz-options/${optionId}`, {
-      method: 'DELETE'
-    });
-  }
-
-  // Delete all options for a question
-  async deleteOptionsByQuestionId(questionId: number): Promise<void> {
-    this.cache.clear();
-    return this.fetchAPI<void>(`/quiz-options/question/${questionId}`, {
-      method: 'DELETE'
-    });
-  }
-
-  // Get options by target trait
-  async getOptionsByTargetTrait(targetTrait: string): Promise<QuizOptionsDTO[]> {
-    return this.fetchAPI<QuizOptionsDTO[]>(`/quiz-options/target-trait/${targetTrait}`, {}, this.DEFAULT_CACHE_TTL);
-  }
-
-  // Get options by score value
-  async getOptionsByScoreValue(scoreValue: 'NEGATIVE_ONE' | 'ZERO' | 'POSITIVE_ONE' | 'DISC_TWO'): Promise<QuizOptionsDTO[]> {
-    return this.fetchAPI<QuizOptionsDTO[]>(`/quiz-options/score-value/${scoreValue}`, {}, this.DEFAULT_CACHE_TTL);
-  }
-
-  // Count options for a question
-  async countOptionsByQuestionId(questionId: number): Promise<{ count: number }> {
-    return this.fetchAPI<{ count: number }>(`/quiz-options/question/${questionId}/count`, {}, this.DEFAULT_CACHE_TTL);
-  }
-
-  // Check if option exists
-  async optionExists(optionId: number): Promise<{ exists: boolean }> {
-    return this.fetchAPI<{ exists: boolean }>(`/quiz-options/${optionId}/exists`, {}, this.DEFAULT_CACHE_TTL);
-  }
-
-  // Get available score values
-  async getAvailableScoreValues(): Promise<('NEGATIVE_ONE' | 'ZERO' | 'POSITIVE_ONE' | 'DISC_TWO')[]> {
-    return this.fetchAPI<('NEGATIVE_ONE' | 'ZERO' | 'POSITIVE_ONE' | 'DISC_TWO')[]>('/quiz-options/score-values', {}, this.DEFAULT_CACHE_TTL);
-  }
-
-  // === Helper Functions for Quiz Types ===
-
   // Get appropriate score values based on quiz type
   getScoreValuesForQuizType(isDiscQuiz: boolean): { value: 'NEGATIVE_ONE' | 'ZERO' | 'POSITIVE_ONE' | 'DISC_TWO', label: string, numericValue: number }[] {
     if (isDiscQuiz) {
@@ -776,22 +703,12 @@ class QuizService {
         { value: 'DISC_TWO', label: 'Most Like Me (2)', numericValue: 2 }
       ];
     } else {
-      // MBTI quiz
+
       return [
         { value: 'NEGATIVE_ONE', label: 'Disagree (-1)', numericValue: -1 },
         { value: 'ZERO', label: 'Neutral (0)', numericValue: 0 },
         { value: 'POSITIVE_ONE', label: 'Agree (1)', numericValue: 1 }
       ];
-    }
-  }
-
-  // Get appropriate traits based on quiz type
-  getTraitsForQuizType(isDiscQuiz: boolean): string[] {
-    if (isDiscQuiz) {
-      return ['D', 'I', 'S', 'C'];
-    } else {
-      // MBTI quiz
-      return ['E', 'I', 'S', 'N', 'T', 'F', 'J', 'P'];
     }
   }
 

@@ -258,15 +258,11 @@ const QuizEditPage: React.FC<QuizEditPageProps> = ({ quizId, onBack, onAlert }) 
         };
       });
 
-      // Get the index of the new question
-      const newQuestionIndex = quiz.questions.length; // This is the correct index
-      
-      // Expand the new question automatically
+      const newQuestionIndex = quiz.questions.length;
+
       setExpandedQuestions(prev => new Set([...prev, newQuestionIndex]));
 
-      // Save the new question
-      // We don't need to get the last question ID since we just created it
-      await saveQuestion(null); // Pass null to indicate it's a new question
+      await saveQuestion(null);
 
       onAlert('success', 'New question added successfully!');
 
@@ -337,13 +333,11 @@ const QuizEditPage: React.FC<QuizEditPageProps> = ({ quizId, onBack, onAlert }) 
   const saveQuestionFromModal = async () => {
   if (!editingQuestion || !quiz) return;
 
-  // Allow partial save: do not require content or options here
-  const validOptions = editingQuestion.options; // allow empty or incomplete options
+  const validOptions = editingQuestion.options;
 
   try {
     setSaving(true);
 
-    // Update local quiz state with modal changes BEFORE saving to backend
     setQuiz(prev => {
       if (!prev) return prev;
       const updatedQuestions = prev.questions.map((q, idx) =>
@@ -363,7 +357,6 @@ const QuizEditPage: React.FC<QuizEditPageProps> = ({ quizId, onBack, onAlert }) 
     });
 
     if (editingQuestion.id) {
-      // Update existing question
       await quizService.updateQuizQuestion(editingQuestion.id, {
         content: editingQuestion.content,
         orderNumber: editingQuestion.orderNumber,
@@ -380,7 +373,7 @@ const QuizEditPage: React.FC<QuizEditPageProps> = ({ quizId, onBack, onAlert }) 
 
       onAlert('success', `Question ${editingQuestion.orderNumber} updated successfully!`);
     } else {
-      // Create new question
+
       const newQuestion = await quizService.createQuizQuestion({
         content: editingQuestion.content,
         orderNumber: editingQuestion.orderNumber,
@@ -389,7 +382,6 @@ const QuizEditPage: React.FC<QuizEditPageProps> = ({ quizId, onBack, onAlert }) 
         options: []
       });
 
-      // Create options in bulk after question is created
       if (validOptions.length > 0) {
         const optionsToCreate = validOptions.map(opt => ({
           optionText: opt.optionText,
@@ -401,7 +393,6 @@ const QuizEditPage: React.FC<QuizEditPageProps> = ({ quizId, onBack, onAlert }) 
         await quizService.createQuizOptions(optionsToCreate);
       }
 
-      // Update local state with new ID
       setQuiz(prev => {
         if (!prev) return prev;
         return {

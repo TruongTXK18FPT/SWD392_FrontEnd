@@ -21,7 +21,7 @@ export interface AnalysisResult {
 
 export interface ChatSession {
     sessionId: string;
-    userId: string;
+    userId: number;
     messages: Message[];
     botReply?: string;
     error?: string | null;
@@ -39,7 +39,7 @@ export interface ChatResponse {
 }
 
 class ChatAiService {
-    private baseURL = 'http://localhost:8080/api/v1/chatai/chat';
+    private baseURL = 'http://localhost:8072/swd391/chatbox/chat';
     private defaultHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
     };
@@ -78,13 +78,10 @@ class ChatAiService {
         return {
             ...this.defaultHeaders,
             'Authorization': `Bearer ${token}`,
-            'X-User-Id': userId // Add user ID header required by backend
+            'X-User-Id': userId
         };
     }
 
-    /**
-     * Get all session IDs for the current user
-     */
     async getUserSessions(): Promise<string[]> {
         const response = await axios.get<string[]>(`${this.baseURL}/sessions`, {
             headers: this.getHeaders(),
@@ -98,9 +95,6 @@ class ChatAiService {
         });
     }
 
-    /**
-     * Start a new chat session
-     */
     async startNewSession(): Promise<ChatSession> {
         try {
             const response = await axios.post<ChatSession>(
@@ -111,14 +105,12 @@ class ChatAiService {
                     validateStatus: (status) => status < 500 // Don't throw for 4xx errors
                 }
             );
-            
-            // If we get a 403, handle it specifically
+
             if (response.status === 403) {
                 const errorMessage = response.data?.error || 'You have reached the maximum number of chat sessions. Please delete an old one to create a new chat.';
                 throw new Error(errorMessage);
             }
-            
-            // For other successful responses
+
             return response.data;
             
         } catch (error) {
@@ -129,9 +121,6 @@ class ChatAiService {
         }
     }
 
-    /**
-     * Send a message in an existing chat session
-     */
     async sendMessage(sessionId: string, message: string): Promise<ChatResponse> {
         try {
             const headers = this.getHeaders();
@@ -174,9 +163,6 @@ class ChatAiService {
         }
     }
 
-    /**
-     * Get chat history for a session
-     */
     async getChatHistory(sessionId: string): Promise<Message[]> {
         const headers = this.getHeaders();
 
@@ -229,16 +215,14 @@ class ChatAiService {
                 }];
             }
         }
-        
-        // Define backend message interface
+
         interface BackendMessage {
             sender: string;
             content?: string;
             createdAt?: string;
             [key: string]: unknown;
         }
-        
-        // Map backend message format to frontend format
+
         return messages
             .map((msg: unknown) => {
                 if (msg && typeof msg === 'object' && 'sender' in msg) {
@@ -264,9 +248,6 @@ class ChatAiService {
             });
     }
 
-    /**
-     * Analyze the conversation and get personality insights
-     */
     async analyzeConversation(sessionId: string): Promise<AnalysisResult> {
         try {
             interface BackendAnalysisResponse {
@@ -287,7 +268,7 @@ class ChatAiService {
                 {},
                 { 
                     headers: this.getHeaders(),
-                    validateStatus: () => true // Don't throw for any status codes
+                    validateStatus: () => true
                 }
             );
 
@@ -335,5 +316,3 @@ class ChatAiService {
 
 // Export a singleton instance
 export const chatAiService = new ChatAiService();
-
-export default ChatAiService;
