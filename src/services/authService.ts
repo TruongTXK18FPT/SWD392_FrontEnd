@@ -16,20 +16,6 @@ export const login = async (email: string, password: string): Promise<void> => {
   setToken(token);
 };
 
-// Refresh token – dùng trong interceptor khi 401
-export const refreshAccessToken = async (): Promise<string> => {
-  const currentToken = getToken();
-
-  const response = await axios.post(
-    "http://localhost:8080/swd391/user/authentication/refresh",
-    {
-      token: currentToken,
-    }
-  );
-
-  const { token } = response.data;
-  return token;
-};
 // Logout – xóa token ở localStorage
 export const logOut = async () => {
   const currentToken = getToken();
@@ -101,17 +87,6 @@ export const registerUser = async (user: RegisterRequestDto): Promise<any> => {
   return response.data;
 };
 
-export const resendOtp = async (email: string, purpose: string) => {
-  const params = new URLSearchParams();
-  params.append("email", email);
-  params.append("purpose", purpose);
-
-  return axios.post("http://localhost:8080/api/v1/authenticate/users/resend", params, {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-  });
-};
 // 🎯 Gửi OTP chỉ với email
 export const sendResetOtpNew = async (email: string) => {
   const params = new URLSearchParams();
