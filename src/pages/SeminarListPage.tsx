@@ -1,122 +1,157 @@
 import React, { useEffect, useState } from 'react';
 import {
-  FaCalendarAlt,
   FaClock,
   FaUsers,
-  FaLink
+  FaLink,
+  FaTicketAlt
 } from 'react-icons/fa';
+import Button from '../components/Button';
+import Alert from '../components/Alert';
 import '../styles/SeminarListPage.css';
-
-// Ảnh local nên import như này nếu dùng Vite/Webpack
-import img1 from '../assets/Blue-Yellow-Online-webinar-Poster-2.jpg';
-import img2 from '../assets/flyer-entreperneur.jpg';
-import img3 from '../assets/online-seminar-publication-poster-free-vector.jpg';
-
-interface Seminar {
-  id: number;
-  title: string;
-  description: string;
-  duration: number;
-  price: number;
-  meetingUrl: string;
-  formUrl: string;
-  slot: number;
-  imageUrl: string;
-  startTime: string;
-  endTime: string;
-  status: 'UPCOMING' | 'ONGOING' | 'ENDED';
-}
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Seminar } from '../types/Seminar';
+import { fetchApprovedSeminars, fetchMyTickets, UserTicket } from '../api/SeminarApi';
+import { getCurrentUser } from '../services/userService';
 
 const SeminarListPage: React.FC = () => {
   const [seminars, setSeminars] = useState<Seminar[]>([]);
-  const [filter, setFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'ENDED'>('ALL');
+  const [filter, setFilter] = useState<'ALL' | 'ONGOING' | 'COMPLETED'>('ALL');
+  const [showTickets, setShowTickets] = useState(false);
+  const [tickets, setTickets] = useState<UserTicket[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [alert, setAlert] = useState<{
+    show: boolean;
+    type: 'success' | 'error' | 'warning';
+    message: string;
+    description?: string;
+  }>({
+    show: false,
+    type: 'success',
+    message: '',
+  });
 
   useEffect(() => {
-    // Simulate loading time for better UX
-    const timer = setTimeout(() => {
-      // Tạm thời dùng mock data
-      setSeminars([
-        {
-          id: 1,
-          title: 'Khám Phá Nghề Lập Trình',
-          description: 'Giới thiệu về ngành IT, backend, frontend, DevOps và thị trường việc làm. Tìm hiểu về các công nghệ mới nhất và cơ hội nghề nghiệp trong lĩnh vực công nghệ thông tin.',
-          duration: 90,
-          price: 0,
-          slot: 100,
-          imageUrl: img1,
-          meetingUrl: 'https://meet.google.com/example1',
-          formUrl: 'https://forms.gle/example1',
-          startTime: '2025-07-10T09:00:00',
-          endTime: '2025-07-10T10:30:00',
-          status: 'UPCOMING'
-        },
-        {
-          id: 2,
-          title: 'Hành Trình Du Học Tự Tin',
-          description: 'Hội thảo chia sẻ kinh nghiệm săn học bổng, chuẩn bị hồ sơ du học Mỹ - Úc. Các chuyên gia tư vấn du học sẽ chia sẻ những bí quyết thành công.',
-          duration: 75,
-          price: 50000,
-          slot: 80,
-          imageUrl: img2,
-          meetingUrl: 'https://meet.google.com/example2',
-          formUrl: 'https://forms.gle/example2',
-          startTime: '2025-07-05T19:00:00',
-          endTime: '2025-07-05T20:15:00',
-          status: 'ONGOING'
-        },
-        {
-          id: 3,
-          title: 'Khởi Nghiệp Từ Đam Mê',
-          description: 'Giao lưu cùng startup trẻ thành công trong ngành sáng tạo và công nghệ. Học hỏi kinh nghiệm từ những founder đã thành công trong việc xây dựng doanh nghiệp.',
-          duration: 60,
-          price: 0,
-          slot: 50,
-          imageUrl: img3,
-          meetingUrl: 'https://meet.google.com/example3',
-          formUrl: 'https://forms.gle/example3',
-          startTime: '2025-06-20T14:00:00',
-          endTime: '2025-06-20T15:00:00',
-          status: 'ENDED'
-        }
-      ]);
-      setLoading(false);
-    }, 1000);
+    // Check for payment status in URL parameters
+    const paymentStatus = searchParams.get('payment');
+    
+    if (paymentStatus === 'success') {
+      setAlert({
+        show: true,
+        type: 'success',
+        message: 'Thanh toán thành công!',
+        description: 'Vé hội thảo của bạn đã được đặt thành công. Bạn sẽ nhận được email xác nhận sớm.',
+      });
+      
+      // Clear the URL parameter
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('payment');
+      window.history.replaceState({}, '', newUrl.toString());
+      
+    } else if (paymentStatus === 'cancelled') {
+      setAlert({
+        show: true,
+        type: 'warning',
+        message: 'Thanh toán đã bị hủy',
+        description: 'Bạn có thể thử đặt vé lại cho hội thảo khác.',
+      });
+      
+      // Clear the URL parameter
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('payment');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [searchParams]);
 
-    return () => clearTimeout(timer);
+  useEffect(() => {
+    // Fetch current user
+    getCurrentUser()
+      .then((userData) => {
+        setCurrentUser(userData);
+      })
+      .catch((err) => {
+        console.error('Failed to get current user:', err);
+      });
+  }, []);
+
+  useEffect(() => {
+    // Fetch seminars from the API
+    fetchApprovedSeminars()
+      .then((data) => {
+        setSeminars(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setAlert({
+          show: true,
+          type: 'error',
+          message: 'Không thể tải danh sách hội thảo',
+          description: 'Vui lòng thử lại sau',
+        });
+        setLoading(false);
+      });
   }, []);
 
   const filteredSeminars = seminars.filter(
-    (s) => filter === 'ALL' || s.status === filter
+    (seminar) => filter === 'ALL' || seminar.status === filter
   );
+
+  const handleFetchTickets = async () => {
+    if (!currentUser) {
+      setAlert({
+        show: true,
+        type: 'warning',
+        message: 'Vui lòng đăng nhập',
+        description: 'Bạn cần đăng nhập để xem danh sách vé đã mua.',
+      });
+      return;
+    }
+
+    setTicketsLoading(true);
+    setShowTickets(true);
+    
+    try {
+      const userTickets = await fetchMyTickets(currentUser.id);
+      setTickets(userTickets);
+    } catch (error) {
+      console.error('Failed to fetch tickets:', error);
+      setAlert({
+        show: true,
+        type: 'error',
+        message: 'Không thể tải danh sách vé',
+        description: 'Vui lòng thử lại sau.',
+      });
+    } finally {
+      setTicketsLoading(false);
+    }
+  };
 
   const getStatusBadge = (status: Seminar['status']) => {
     switch (status) {
-      case 'UPCOMING':
-        return <span className="seminar-status-badge upcoming">Sắp diễn ra</span>;
+      case 'PENDING':
+        return <span className="badge pending">Chờ diễn ra</span>;
       case 'ONGOING':
-        return <span className="seminar-status-badge ongoing">Đang diễn ra</span>;
-      case 'ENDED':
-        return <span className="seminar-status-badge ended">Đã kết thúc</span>;
+        return <span className="badge ongoing">Đang diễn ra</span>;
+      case 'COMPLETED':
+        return <span className="badge ended">Đã kết thúc</span>;
+      case 'CANCELLED':
+        return <span className="badge cancelled">Đã hủy</span>;
+      default:
+        return null;
     }
   };
 
   const getTabLabel = (key: string) => {
     switch (key) {
       case 'ALL': return 'Tất cả';
-      case 'UPCOMING': return 'Sắp diễn ra';
       case 'ONGOING': return 'Đang diễn ra';
-      case 'ENDED': return 'Đã kết thúc';
+      case 'COMPLETED': return 'Đã kết thúc';
       default: return key;
     }
-  };
-
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return {
-      date: date.toLocaleDateString('vi-VN'),
-      time: date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-    };
   };
 
   if (loading) {
@@ -132,101 +167,121 @@ const SeminarListPage: React.FC = () => {
   }
 
   return (
-    <div className="seminar-list-page">
-      <div className="seminar-list-container">
-        <header className="seminar-list-header">
-          <h1 className="seminar-list-title">Hội Thảo Công Nghệ</h1>
-          <p className="seminar-list-subtitle">
-            Khám phá những xu hướng mới nhất trong công nghệ và phát triển kỹ năng chuyên môn cùng các chuyên gia hàng đầu
-          </p>
-        </header>
+    <div className="seminar-page">
+      {alert.show && (
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          description={alert.description}
+          onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+        />
+      )}
+      
+      <h1>Danh sách hội thảo</h1>
 
-        <div className="seminar-filter-tabs">
-          {['ALL', 'UPCOMING', 'ONGOING', 'ENDED'].map((key) => (
+      <div className="seminar-header">
+        <div className="filter-tabs">
+          {['ALL', 'ONGOING', 'COMPLETED'].map((key) => (
             <button
               key={key}
-              className={`seminar-tab-btn ${filter === key ? 'active' : ''}`}
-              onClick={() => setFilter(key as any)}
+              className={`tab-btn ${filter === key ? 'active' : ''}`}
+              onClick={() => setFilter(key as 'ALL' | 'ONGOING' | 'COMPLETED')}
             >
               {getTabLabel(key)}
             </button>
           ))}
         </div>
+        
+        <div className="tickets-section">
+          <Button 
+            variant="primary" 
+            size="sm" 
+            icon={<FaTicketAlt />}
+            onClick={handleFetchTickets}
+            disabled={ticketsLoading}
+          >
+            {ticketsLoading ? 'Đang tải...' : 'Your Tickets'}
+          </Button>
+        </div>
+      </div>
 
-        {filteredSeminars.length === 0 ? (
-          <div className="seminar-empty">
-            <h3 className="seminar-empty-title">Không có hội thảo nào</h3>
-            <p className="seminar-empty-message">
-              Hiện tại không có hội thảo nào phù hợp với bộ lọc đã chọn. Hãy thử chọn bộ lọc khác hoặc quay lại sau.
-            </p>
-          </div>
-        ) : (
-          <div className="seminar-cards-grid">
-            {filteredSeminars.map((seminar, index) => {
-              const dateTime = formatDateTime(seminar.startTime);
-              return (
-                <div className="seminar-card seminar-card-animated" key={seminar.id} style={{ animationDelay: `${index * 0.1}s` }}>
-                  <div className="seminar-card-image-wrapper">
-                    <img src={seminar.imageUrl} alt={seminar.title} className="seminar-card-image" />
-                    <div className="seminar-card-image-overlay">
-                      <button className="seminar-card-preview-btn">
-                        Xem chi tiết
-                      </button>
-                    </div>
+      {showTickets && (
+        <div className="tickets-display">
+          <h2>Vé đã mua</h2>
+          {tickets.length === 0 ? (
+            <p>Bạn chưa mua vé nào.</p>
+          ) : (
+            <div className="tickets-grid">
+              {tickets.map((ticket) => (
+                <div key={ticket.id} className="ticket-card">
+                  <div className="ticket-info">
+                    <p><strong>Mã vé:</strong> #{ticket.id}</p>
+                    <p><strong>Mô tả:</strong> {ticket.description}</p>
+                    <p><strong>Thời gian bắt đầu:</strong> {new Date(ticket.startingTime).toLocaleString('vi-VN')}</p>
+                    <p><strong>Thời gian kết thúc:</strong> {new Date(ticket.endingTime).toLocaleString('vi-VN')}</p>
+                    <p><strong>Ngày đặt:</strong> {new Date(ticket.bookingTime).toLocaleDateString('vi-VN')}</p>
+                    <p><strong>Trạng thái:</strong> 
+                      <span className={`status ${ticket.status ? 'active' : 'inactive'}`}>
+                        {ticket.status ? 'Hoạt động' : 'Không hoạt động'}
+                      </span>
+                    </p>
                   </div>
-                  
-                  <div className="seminar-card-content">
-                    <h3 className="seminar-card-title">{seminar.title}</h3>
-                    <p className="seminar-card-description">{seminar.description}</p>
-                    
-                    <div className="seminar-card-meta">
-                      <div className="seminar-meta-item">
-                        <FaClock />
-                        <span>{seminar.duration} phút</span>
-                      </div>
-                      <div className="seminar-meta-item">
-                        <FaUsers />
-                        <span>{seminar.slot} slots</span>
-                      </div>
-                      <div className="seminar-meta-item">
-                        <FaCalendarAlt />
-                        <span>{dateTime.date}</span>
-                      </div>
-                      <div className="seminar-meta-item">
-                        <span>{dateTime.time}</span>
-                      </div>
-                      <div className="seminar-card-price">
-                        {seminar.price === 0 ? 'Miễn phí' : `${seminar.price.toLocaleString()}₫`}
-                      </div>
-                    </div>
-                    
-                    {getStatusBadge(seminar.status)}
-                    
-                    <div className="seminar-card-actions">
-                      <a href={seminar.formUrl} target="_blank" rel="noreferrer" className="seminar-action-link">
-                        <button className="seminar-action-btn outline">
-                          <FaLink /> Đăng ký
-                        </button>
-                      </a>
-                      {seminar.status !== 'UPCOMING' && (
-                        <a href={seminar.meetingUrl} target="_blank" rel="noreferrer" className="seminar-action-link">
-                          <button className="seminar-action-btn primary">
-                            Vào phòng
-                          </button>
-                        </a>
-                      )}
-                      {seminar.status === 'UPCOMING' && (
-                        <button className="seminar-action-btn disabled" disabled>
-                          Chưa mở
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate(`/seminars/${ticket.seminarId}`)}
+                  >
+                    Xem chi tiết hội thảo
+                  </Button>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+          )}
+          <Button 
+            variant="secondary" 
+            size="sm"
+            onClick={() => setShowTickets(false)}
+          >
+            Đóng
+          </Button>
+        </div>
+      )}
+
+      <div className="seminar-grid">
+        {filteredSeminars.map((seminar) => (
+          <div
+            className="seminar-card"
+            key={seminar.id}
+            onClick={() => navigate(`/seminars/${seminar.id}`)}
+            style={{ cursor: 'pointer' }}
+          >
+            <img src={seminar.imageUrl} alt={seminar.title} className="seminar-img" />
+            <div className="seminar-content">
+              <h3>{seminar.title}</h3>
+              <p>{seminar.description}</p>
+              <div className="seminar-meta">
+                <span><FaClock /> {seminar.duration} phút</span>
+                <span><FaUsers /> {seminar.slot} slot</span>
+                <span><strong>{seminar.price === 0 ? 'Miễn phí' : `${seminar.price.toLocaleString()}₫`}</strong></span>
+              </div>
+              {getStatusBadge(seminar.status)}
+              <div className="seminar-actions">
+                <a href={seminar.formUrl} target="_blank" rel="noreferrer">
+                  <Button variant="outline" size="sm" icon={<FaLink />}>
+                    Đăng ký
+                  </Button>
+                </a>
+                {seminar.status !== 'PENDING' && seminar.meetingUrl && (
+                  <a href={seminar.meetingUrl} target="_blank" rel="noreferrer">
+                    <Button variant="primary" size="sm">
+                      Vào phòng
+                    </Button>
+                  </a>
+                )}
+              </div>
+            </div>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );

@@ -27,10 +27,13 @@
 /* Main Register Container - Fixed navbar overlap */
 .register-container {
   min-height: 100vh;
-  padding-top: 80px; /* Account for navbar height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: linear-gradient(135deg, var(--bg-darker) 0%, var(--primary-deep-indigo) 50%, var(--primary-indigo) 100%);
   position: relative;
   overflow: hidden;
+  padding-top: 0; /* Remove extra top padding */
 }
 
 /* Animated Background Elements */
@@ -98,13 +101,12 @@
 
 /* Form Container */
 .register-content {
-  position: relative;
-  z-index: 10;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 80px);
-  padding: 2rem;
+  min-height: 100vh;
+  padding: 0; /* Remove extra padding */
 }
 
 /* Form Card */
@@ -165,7 +167,7 @@
 }
 
 .register-title {
-  font-family: 'Orbitron', monospace;
+ font-family: 'Poppins', sans-serif;
   font-size: 2.5rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -262,14 +264,14 @@
 .register-form-select:invalid,
 .register-form-input:invalid,
 select:invalid {
-  color: #1e293b !important; /* Dark color for placeholder */
+  color: white ; /* Dark color for placeholder */
 }
 
 /* When an option is selected */
 .register-form-select:valid,
 .register-form-input:valid,
 select:valid {
-  color: var(--text-primary) !important; /* White color for selected text */
+  color: var(--bg-darker); /* White color for selected text */
 }
 
 .register-form-select:focus,
@@ -690,7 +692,7 @@ select:valid {
 }
 
 .otp-title {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 2rem;
   font-weight: 600;
   color: var(--text-primary);

@@ -5,11 +5,14 @@ import { FaEnvelope, FaKey, FaLock } from "react-icons/fa";
 import Alert from "../components/Alert";
 import Login from "../assets/Login.mp4";
 import "../styles/ForgotPassword.css";
+
+// ✅ Sử dụng các API mới
 import {
-  resendOtp,
-  resetPassword,
-  verifyForgotOtp,
+  sendResetOtpNew,
+  verifyResetOtpNew,
+  resetPasswordNewApi,
 } from "../services/authService";
+
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<"email" | "otp" | "newPassword">("email");
@@ -33,8 +36,7 @@ const ForgotPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await resendOtp(email, "RESET_PASSWORD");
-
+      await sendResetOtpNew(email);
       setAlert({
         show: true,
         type: "success",
@@ -59,8 +61,7 @@ const ForgotPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await verifyForgotOtp(email, otp);
-
+      await verifyResetOtpNew(email, otp);
       setAlert({
         show: true,
         type: "success",
@@ -81,49 +82,71 @@ const ForgotPassword: React.FC = () => {
     }
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  
 
-    if (newPassword !== confirmPassword) {
-      setAlert({
-        show: true,
-        type: "error",
-        message: "Mật khẩu xác nhận không khớp.",
-      });
-      return;
-    }
+const handlePasswordSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    setIsLoading(true);
+  if (newPassword.length < 5) {
+    setAlert({
+      show: true,
+      type: "error",
+      message: "Mật khẩu phải có ít nhất 5 ký tự.",
+    });
+    return;
+  }
 
-    try {
-      await resetPassword({
-        email,
-        newPassword,
-      });
+  if (confirmPassword.length < 6) {
+    setAlert({
+      show: true,
+      type: "error",
+      message: "Mật khẩu xác nhận phải có ít nhất 5 ký tự.",
+    });
+    return;
+  }
 
-      setAlert({
-        show: true,
-        type: "success",
-        message: "Đổi mật khẩu thành công! Đang chuyển hướng...",
-      });
+  if (newPassword !== confirmPassword) {
+    setAlert({
+      show: true,
+      type: "error",
+      message: "Mật khẩu xác nhận không khớp.",
+    });
+    return;
+  }
 
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-    } catch (error) {
-      setAlert({
-        show: true,
-        type: "error",
-        message: "Không thể cập nhật mật khẩu. Vui lòng thử lại sau.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  setIsLoading(true);
+
+  try {
+    await resetPasswordNewApi(email, newPassword, confirmPassword); // 👈 gọi API mới
+
+    setAlert({
+      show: true,
+      type: "success",
+      message: "Đổi mật khẩu thành công! Đang chuyển hướng...",
+    });
+
+    setTimeout(() => {
+      navigate("/login");
+    }, 2000);
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      "Không thể cập nhật mật khẩu. Vui lòng thử lại sau.";
+    setAlert({
+      show: true,
+      type: "error",
+      message,
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
 
   const handleResendOtp = async () => {
     try {
-      await resendOtp(email, "RESET_PASSWORD");
+      await sendResetOtpNew(email);
       window.alert("Đã gửi lại mã OTP!");
     } catch (error) {
       window.alert("Không thể gửi lại OTP.");

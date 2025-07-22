@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import NavBar from "./components/NavBar";
@@ -20,6 +21,22 @@ import { getToken, removeToken } from "./services/localStorageService";
 import { getCurrentUser } from "./services/userService";
 import ChatAi from "./pages/ChatAi";
 import { logOut } from "./services/authService";
+import EditSeminarPage from './pages/EditSeminarPage'
+import CreateSeminarPage from './pages/CreateSeminarPage'
+import SeminarDetailPage from './pages/SeminarDetailPage'
+import PaymentRedirectHandler from './pages/PaymentRedirectHandler'
+import EventManagerPage from './pages/EventManagerPage'
+import PersonalityPage from "./pages/PersonalityPages";
+import About from "./pages/About";
+import Careers from "./pages/Careers";
+import Contact from "./pages/Contact";
+import Products from "./pages/Products";
+import Solutions from "./pages/Solutions";
+import Support from "./pages/Support";
+
+
+
+
 
 interface User {
   id: string;
@@ -110,7 +127,7 @@ function App() {
 
   // Show loading spinner while checking authentication
   if (loading) {
-    return <LoadingSpinner message="Đang kiểm tra xác thực..." />;
+    return <LoadingSpinner size="medium" message="Đang kiểm tra xác thực..." />;
   }
 
   return (
@@ -144,9 +161,30 @@ function App() {
             element={<Authenticate onLoginSuccess={handleLoginSuccess} />}
           />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+
+
+          
+          <Route path="/admin/event-create" element={<CreateSeminarPage />} />
+          
+          <Route path="/admin/event-edit/:id" element={<EditSeminarPage />} />
+          <Route path="/personality" element={<PersonalityPage />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/solutions" element={<Solutions />} />
+          <Route path="/support" element={<Support />} />
+          
+          {/* Public Routes */}
+          
+          {/* Protected Routes */}
+=======
           <Route path="/register" element={<Register />} />
+          <Route path="/payment-redirect" element={<PaymentRedirectHandler />} />
           <Route
             path="/seminars" element={<SeminarListPage />}/>
+          <Route path="/seminars/:seminarId" element={<SeminarDetailPage />} />
+
           <Route path="/premium" element={<PremiumPage isAuthenticated={isAuthenticated} />} />
           <Route
             path="/quiz"
@@ -191,6 +229,19 @@ function App() {
             }
           />
           <Route
+            path="/event-manager"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                userRole={user?.role?.toLowerCase()}
+                requiredRole="event_manager"
+                requireExactRole={true}
+              >
+                <EventManagerPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/chat-ai"
             element={
               <ProtectedRoute isAuthenticated={isAuthenticated}>
@@ -200,8 +251,10 @@ function App() {
           />
 
           {/* Public Routes */}
+
           {/* Add more routes as needed */}
         </Routes>
+        
       </main>
     </div>
   );

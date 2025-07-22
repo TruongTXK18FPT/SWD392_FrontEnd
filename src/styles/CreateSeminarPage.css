@@ -22,45 +22,46 @@
   gap: 1.5rem;
 }
 
-.form-group {
+.seminar-form-group {
   display: flex;
   flex-direction: column;
 }
-.form-group input,
-.form-group textarea {
+.seminar-form-group input,
+.seminar-form-group textarea {
   padding: 0.8rem 1rem;
   border: 1px solid #ddd;
   border-radius: 10px;
   font-size: 1rem;
-  color: #333;
+  color: #000000;
+  background-color: #ddd;
 }
 
-.form-group label {
+.seminar-form-group label {
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: #333;
 }
 
-.form-group input,
-.form-group textarea {
+.seminar-form-group input,
+.seminar-form-group textarea {
   padding: 0.8rem 1rem;
   border: 1px solid #ddd;
   border-radius: 10px;
   font-size: 1rem;
 }
 
-.form-group textarea {
+.seminar-form-group textarea {
   resize: vertical;
   min-height: 100px;
 }
 
-.form-row {
+.seminar-form-row {
   display: flex;
   gap: 1.5rem;
   flex-wrap: wrap;
 }
 
-.form-row .form-group {
+.seminar-form-row .seminar-form-group {
   flex: 1;
   min-width: 180px;
 }

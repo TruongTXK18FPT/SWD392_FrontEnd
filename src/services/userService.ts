@@ -3,34 +3,42 @@ import { getToken } from "./localStorageService";
 
 export const getCurrentUser = async () => {
   const token = getToken();
-  const response = await axios.get("http://localhost:8080/api/v1/authenticate/users/me", {
+  const response = await axios.get("http://localhost:8072/swd391/user/api/users/me", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
   return response.data.result;
 };
-export const updateProfile = async (data: {
+
+// Define interface for profile data, excluding provinceCode and districtCode
+export interface UserProfileUpdateData {
   fullName?: string;
-  phone?: string;
+  phoneNumber?: string;
   address?: string;
-  birthDate?: string;
-  isParent?: boolean;
-  provinceCode?: number;
-  districtCode?: number;
-}): Promise<void> => {
+  birthDay?: string | null;
+  gender?: string | null;
+  school?: string | null;
+}
+
+// Update profile function, using the correct endpoint
+export const updateProfile = async (userId: number, data: UserProfileUpdateData): Promise<any> => {
   const token = getToken();
-  
-  try {
-    await axios.post("http://localhost:8080/api/v1/authenticate/users/complete-profile", data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  } catch (error: any) {
-    console.error("Profile update error:", error.response?.data ?? error.message);
-    throw error;
+  if (!token) {
+    throw new Error("No authentication token found.");
   }
+
+  const response = await axios.put(
+      `http://localhost:8072/swd391/user/api/profiles/${userId}`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+  );
+
+  // Return updated profile data from the "result" field
+  return response.data.result;
 };
-
-
