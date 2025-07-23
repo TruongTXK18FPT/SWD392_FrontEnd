@@ -1,0 +1,267 @@
+/* Seminar Approval Styles */
+.seminar-approval {
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.approval-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  color: white;
+}
+
+.approval-header h2 {
+  font-size: 2rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.approval-header p {
+  margin: 5px 0 0 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+.seminar-approval-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #666;
+}
+
+.seminar-approval-loading .spin {
+  font-size: 2rem;
+  margin-bottom: 15px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.no-seminars {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  color: #666;
+}
+
+.no-seminars .check-icon {
+  font-size: 4rem;
+  color: #28a745;
+  margin-bottom: 20px;
+}
+
+.no-seminars h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.seminars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 25px;
+}
+
+.seminar-approval-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 2px solid #e1e5e9;
+}
+
+.seminar-approval-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  border-color: #667eea;
+}
+
+.seminar-image {
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+}
+
+.seminar-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.seminar-approval-card:hover .seminar-image img {
+  transform: scale(1.05);
+}
+
+.seminar-content {
+  padding: 20px;
+}
+
+.seminar-content h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.seminar-description {
+  color: #666;
+  margin-bottom: 15px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+.seminar-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.detail-item svg {
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.status-badges {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.status-badge,
+.approval-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.approval-badge.pending {
+  background: #e2e3e5;
+  color: #6c757d;
+  border: 1px solid #ced4da;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.approval-actions button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.approval-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.approval-actions button.success {
+  background: #28a745;
+  color: white;
+  border: none;
+}
+
+.approval-actions button.success:hover:not(:disabled) {
+  background: #218838;
+  transform: translateY(-2px);
+}
+
+.approval-actions button.danger {
+  background: #dc3545;
+  color: white;
+  border: none;
+}
+
+.approval-actions button.danger:hover:not(:disabled) {
+  background: #c82333;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .seminar-approval {
+    padding: 15px;
+  }
+  
+  .approval-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .approval-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .seminars-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .approval-actions {
+    flex-direction: column;
+  }
+  
+  .approval-actions button {
+    flex: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .seminar-approval-card {
+    margin: 0 -5px;
+  }
+  
+  .seminar-content {
+    padding: 15px;
+  }
+  
+  .seminar-content h3 {
+    font-size: 1.1rem;
+  }
+}

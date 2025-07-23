@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2, User, Shield, Mail, CheckCircle, XCircle, Eye, EyeOff, Save, X } from 'lucide-react';
+import { getAllUsers, createUser, updateUser, deleteUser, getRoles, type RoleDto as ApiRoleDto, type CreateUserRequest, type UpdateUserRequest } from '../../services/userManagementService';
 import '../../styles/UserManagement.css';
 
-// TypeScript Interfaces
-interface RoleDto {
-  roleId: number;
-  roleName: string;
-}
-
+// TypeScript Interfaces - Updated to match API
 interface User {
-  id?: string;
+  id?: number; // Changed from string to number
   email: string;
-  password: string;
-  roleDto: RoleDto;
+  password?: string;
+  roleDto: ApiRoleDto;
   status: boolean;
 }
 
@@ -24,81 +20,89 @@ interface UserFormData {
 }
 
 const UserManagement: React.FC = () => {
-  // Mock data based on your provided structure
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: "1",
-      email: "admin@example.com",
-      password: "$2a$12$Sqd5lHHmpeuThlWd3xyL2eYsT1WjR72cJKRGv9u27HlEWeyk6idj2",
-      roleDto: { roleId: 2, roleName: "ADMIN" },
-      status: true
-    },
-    {
-      id: "2",
-      email: "student1@example.com",
-      password: "$2a$12$Sqd5lHHmpeuThlWd3xyL2eYsT1WjR72cJKRGv9u27HlEWeyk6idj2",
-      roleDto: { roleId: 1, roleName: "STUDENT" },
-      status: true
-    },
-    {
-      id: "3",
-      email: "parent@example.com",
-      password: "$2a$12$Sqd5lHHmpeuThlWd3xyL2eYsT1WjR72cJKRGv9u27HlEWeyk6idj2",
-      roleDto: { roleId: 3, roleName: "PARENT" },
-      status: true
-    },
-    {
-      id: "4",
-      email: "sysadmin@example.com",
-      password: "$2a$12$Sqd5lHHmpeuThlWd3xyL2eYsT1WjR72cJKRGv9u27HlEWeyk6idj2",
-      roleDto: { roleId: 4, roleName: "SYSTEM_ADMIN" },
-      status: true
-    },
-    {
-      id: "5",
-      email: "eventmgr@example.com",
-      password: "$2a$12$Sqd5lHHmpeuThlWd3xyL2eYsT1WjR72cJKRGv9u27HlEWeyk6idj2",
-      roleDto: { roleId: 5, roleName: "EVENT_MANAGER" },
-      status: true
-    },
-    {
-      id: "6",
-      email: "student2@example.com",
-      password: "$2a$12$Sqd5lHHmpeuThlWd3xyL2eYsT1WjR72cJKRGv9u27HlEWeyk6idj2",
-      roleDto: { roleId: 1, roleName: "STUDENT" },
-      status: true
-    },
-    {
-      id: "7",
-      email: "student3@example.com",
-      password: "$2a$12$Sqd5lHHmpeuThlWd3xyL2eYsT1WjR72cJKRGv9u27HlEWeyk6idj2",
-      roleDto: { roleId: 1, roleName: "STUDENT" },
-      status: false
-    },
-    {
-      id: "8",
-      email: "parent2@example.com",
-      password: "$2a$12$Sqd5lHHmpeuThlWd3xyL2eYsT1WjR72cJKRGv9u27HlEWeyk6idj2",
-      roleDto: { roleId: 3, roleName: "PARENT" },
-      status: false
-    },
-    {
-      id: "9",
-      email: "admin2@example.com",
-      password: "$2a$12$Sqd5lHHmpeuThlWd3xyL2eYsT1WjR72cJKRGv9u27HlEWeyk6idj2",
-      roleDto: { roleId: 2, roleName: "ADMIN" },
-      status: true
-    },
-    {
-      id: "10",
-      email: "eventmgr2@example.com",
-      password: "$2a$12$Sqd5lHHmpeuThlWd3xyL2eYsT1WjR72cJKRGv9u27HlEWeyk6idj2",
-      roleDto: { roleId: 5, roleName: "EVENT_MANAGER" },
-      status: true
-    }
-  ]);
+  // State Management
+  const [users, setUsers] = useState<User[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<ApiRoleDto[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Load data on component mount
+  useEffect(() => {
+    loadRolesAndUsers();
+  }, []);
 
-  const [filteredUsers, setFilteredUsers] = useState<User[]>(users);
+  const loadRolesAndUsers = async () => {
+    await loadRoles();
+    await loadUsers();
+  };
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const fetchedUsers = await getAllUsers();
+      console.log('Fetched users from API:', fetchedUsers);
+      
+      const mappedUsers = fetchedUsers.map((user, index) => {
+        console.log(`Processing user ${index}:`, user);
+        console.log(`User ID: "${user.id}" (should now be present)`);
+        
+        // User already has roleDto from API - no need to map
+        const mappedUser = {
+          id: user.id,
+          email: user.email,
+          roleDto: user.roleDto, // Use roleDto directly from API
+          status: user.status
+        };
+        
+        console.log(`Mapped user ${index}:`, mappedUser);
+        console.log(`Final user ID: "${mappedUser.id}" (type: ${typeof mappedUser.id})`);
+        
+        return mappedUser;
+      });
+      
+      console.log('Final mapped users:', mappedUsers);
+      setUsers(mappedUsers);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load users');
+      console.error('Error loading users:', err);
+      // Fall back to mock data if API fails
+      setUsers([
+        {
+          id: 1,
+          email: "admin@example.com",
+          roleDto: { roleId: 2, roleName: "ADMIN" },
+          status: true
+        },
+        {
+          id: 2,
+          email: "student1@example.com",
+          roleDto: { roleId: 1, roleName: "STUDENT" },
+          status: true
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadRoles = async () => {
+    try {
+      const roles = await getRoles();
+      setAvailableRoles(roles);
+    } catch (err) {
+      console.error('Error loading roles:', err);
+      // Use fallback roles if API fails
+      setAvailableRoles([
+        { roleId: 1, roleName: 'STUDENT' },
+        { roleId: 2, roleName: 'PARENT' },
+        { roleId: 3, roleName: 'ADMIN' },
+        { roleId: 4, roleName: 'EVENT_MANAGER' }
+      ]);
+    }
+  };
+
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -114,13 +118,15 @@ const UserManagement: React.FC = () => {
     status: true
   });
 
-  const roles = [
-    { id: 1, name: 'STUDENT' },
-    { id: 2, name: 'ADMIN' },
-    { id: 3, name: 'PARENT' },
-    { id: 4, name: 'SYSTEM_ADMIN' },
-    { id: 5, name: 'EVENT_MANAGER' }
-  ];
+  const resetForm = () => {
+    setFormData({
+      email: '',
+      password: '',
+      roleId: 1,
+      status: true
+    });
+    setSelectedUser(null);
+  };
 
   // Filter users based on search term, role, and status
   useEffect(() => {
@@ -171,52 +177,125 @@ const UserManagement: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleDelete = (user: User) => {
+  const handleDelete = async (user: User) => {
+    console.log('handleDelete called with user:', user);
+    console.log('User ID details:', {
+      id: user.id,
+      hasId: !!user.id,
+      idType: typeof user.id
+    });
+    
+    if (!user.id) {
+      console.error('User ID validation failed:', user);
+      alert(`Cannot delete user: No valid user ID found.\nUser data: ${JSON.stringify(user, null, 2)}`);
+      return;
+    }
+    
     if (window.confirm(`Are you sure you want to delete user: ${user.email}?`)) {
-      setUsers(prev => prev.filter(u => u.id !== user.id));
+      try {
+        console.log('Deleting user with ID:', user.id);
+        await deleteUser(user.id); // Pass numeric ID directly
+        console.log('User deleted successfully');
+        
+        // Reload the users list to ensure consistency
+        await loadUsers();
+      } catch (err) {
+        console.error('Error deleting user:', err);
+        alert(err instanceof Error ? err.message : 'Failed to delete user');
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (modalMode === 'create') {
-      const newUser: User = {
-        id: (users.length + 1).toString(),
-        email: formData.email,
-        password: formData.password || '$2a$12$defaultHashedPassword',
-        roleDto: {
-          roleId: formData.roleId,
-          roleName: roles.find(r => r.id === formData.roleId)?.name || 'STUDENT'
-        },
-        status: formData.status
-      };
-      setUsers(prev => [...prev, newUser]);
-    } else if (selectedUser) {
-      setUsers(prev => prev.map(user => 
-        user.id === selectedUser.id 
-          ? {
-              ...user,
-              email: formData.email,
-              ...(formData.password && { password: formData.password }),
-              roleDto: {
-                roleId: formData.roleId,
-                roleName: roles.find(r => r.id === formData.roleId)?.name || 'STUDENT'
-              },
-              status: formData.status
-            }
-          : user
-      ));
-    }
+    try {
+      if (modalMode === 'create') {
+        const selectedRole = availableRoles.find(r => r.roleId === formData.roleId);
+        if (!selectedRole) {
+          alert('Please select a valid role');
+          return;
+        }
 
-    setShowModal(false);
-    setSelectedUser(null);
+        const createRequest: CreateUserRequest = {
+          email: formData.email,
+          password: formData.password || 'defaultPassword123',
+          roleDto: selectedRole,
+          status: formData.status
+        };
+
+        const newUser = await createUser(createRequest);
+        
+        // Add the new user to the local state
+        const userToAdd: User = {
+          id: newUser.id,
+          email: newUser.email,
+          roleDto: selectedRole,
+          status: newUser.status
+        };
+        setUsers(prev => [...prev, userToAdd]);
+        
+      } else if (selectedUser && selectedUser.id) {
+        const selectedRole = availableRoles.find(r => r.roleId === formData.roleId);
+        if (!selectedRole) {
+          alert('Please select a valid role');
+          return;
+        }
+
+        const updateRequest: UpdateUserRequest = {
+          email: formData.email,
+          ...(formData.password && { password: formData.password }),
+          roleDto: selectedRole,
+          status: formData.status
+        };
+
+        await updateUser(selectedUser.id, updateRequest);
+        
+        // Update the local state
+        setUsers(prev => prev.map(user => 
+          user.id === selectedUser.id 
+            ? {
+                ...user,
+                email: formData.email,
+                roleDto: selectedRole,
+                status: formData.status
+              }
+            : user
+        ));
+      }
+
+      setShowModal(false);
+      resetForm();
+    } catch (err) {
+      console.error('Error saving user:', err);
+      alert(err instanceof Error ? err.message : 'Failed to save user');
+    }
   };
 
-  const toggleUserStatus = (user: User) => {
-    setUsers(prev => prev.map(u => 
-      u.id === user.id ? { ...u, status: !u.status } : u
-    ));
+  const toggleUserStatus = async (user: User) => {
+    if (!user.id) return;
+    
+    try {
+      const newStatus = !user.status;
+      console.log('Toggling user status for:', user.email, 'from', user.status, 'to', newStatus);
+      
+      // Call API to update user status
+      const updateRequest: UpdateUserRequest = {
+        email: user.email,
+        roleDto: user.roleDto,
+        status: newStatus
+      };
+      
+      await updateUser(user.id, updateRequest);
+      console.log('User status updated successfully');
+      
+      // Reload the users list to ensure consistency
+      await loadUsers();
+      
+    } catch (err) {
+      console.error('Error updating user status:', err);
+      alert(err instanceof Error ? err.message : 'Failed to update user status');
+    }
   };
 
   const getRoleBadgeClass = (roleName: string) => {
@@ -237,6 +316,12 @@ const UserManagement: React.FC = () => {
 
   return (
     <div className="user-management">
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
+      
       <div className="user-management-header">
         <div className="header-content">
           <h1>
@@ -251,7 +336,14 @@ const UserManagement: React.FC = () => {
         </button>
       </div>
 
-      <div className="user-management-filters">
+      {loading ? (
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading users...</p>
+        </div>
+      ) : (
+        <>
+          <div className="user-management-filters">{/* ...existing filter code... */}
         <div className="search-box">
           <Search className="search-icon" size={20} />
           <input
@@ -268,8 +360,8 @@ const UserManagement: React.FC = () => {
           className="filter-select"
         >
           <option value="ALL">All Roles</option>
-          {roles.map(role => (
-            <option key={role.id} value={role.name}>{role.name}</option>
+          {availableRoles.map(role => (
+            <option key={role.roleId} value={role.roleName}>{role.roleName}</option>
           ))}
         </select>
 
@@ -295,7 +387,8 @@ const UserManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((user) => (
+            {filteredUsers.map((user) => {
+              return (
               <tr key={user.id}>
                 <td>
                   <div className="user-email">
@@ -346,7 +439,8 @@ const UserManagement: React.FC = () => {
                   </div>
                 </td>
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
 
@@ -358,6 +452,8 @@ const UserManagement: React.FC = () => {
           </div>
         )}
       </div>
+        </>
+      )}
 
       {/* Create/Edit Modal */}
       {showModal && (
@@ -387,7 +483,7 @@ const UserManagement: React.FC = () => {
 
               <div className="form-group">
                 <label htmlFor="password">
-                  Password {modalMode === 'edit' && '(leave blank to keep current)'}
+                  Password {modalMode === 'edit' && '(can not be null)'}
                 </label>
                 <div className="password-input">
                   <input
@@ -395,7 +491,7 @@ const UserManagement: React.FC = () => {
                     id="password"
                     value={formData.password}
                     onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    placeholder={modalMode === 'create' ? 'Enter password' : 'Leave blank to keep current'}
+                    placeholder={modalMode === 'create' ? 'Enter password' : 'can not be null'}
                     required={modalMode === 'create'}
                   />
                   <button
@@ -416,9 +512,9 @@ const UserManagement: React.FC = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, roleId: parseInt(e.target.value) }))}
                   required
                 >
-                  {roles.map(role => (
-                    <option key={role.id} value={role.id}>
-                      {role.name}
+                  {availableRoles.map(role => (
+                    <option key={role.roleId} value={role.roleId}>
+                      {role.roleName}
                     </option>
                   ))}
                 </select>

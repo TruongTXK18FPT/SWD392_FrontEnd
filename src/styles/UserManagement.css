@@ -141,6 +141,7 @@
   align-items: center;
   gap: 8px;
   font-weight: 500;
+  color: black;
 }
 
 .email-icon {
@@ -402,6 +403,7 @@
   font-size: 14px;
   transition: all 0.2s ease;
   box-sizing: border-box;
+  color: black;
 }
 
 .form-group input:focus,

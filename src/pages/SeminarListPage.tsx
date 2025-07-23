@@ -229,7 +229,7 @@ const SeminarListPage: React.FC = () => {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => navigate(`/seminars/${ticket.seminarId}`)}
+                    onClick={() => navigate(`/seminars/${ticket.seminarId}?showDetails=true`)}
                   >
                     Xem chi tiết hội thảo
                   </Button>

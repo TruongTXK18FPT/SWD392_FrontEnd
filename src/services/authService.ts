@@ -117,3 +117,32 @@ export const resetPasswordNewApi = async (
     confirmPassword,
   });
 };
+
+// 🎯 Refresh access token
+export const refreshAccessToken = async (): Promise<string> => {
+  const currentToken = getToken();
+  
+  if (!currentToken) {
+    throw new Error('No token available for refresh');
+  }
+
+  try {
+    const response = await axios.post(
+      "http://localhost:8072/swd391/user/authentication/refresh",
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${currentToken}`,
+        },
+      }
+    );
+
+    const newToken = response.data.result.token;
+    setToken(newToken);
+    return newToken;
+  } catch (error) {
+    console.error("Token refresh failed:", error);
+    removeToken(); // Remove invalid token
+    throw error;
+  }
+};

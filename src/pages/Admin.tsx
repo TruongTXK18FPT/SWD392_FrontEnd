@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fa';
 import QuizManagement from '../components/admin/QuizManagement';
 import UserManagement from '../components/admin/UserManagement';
+import SeminarApproval from '../components/admin/SeminarApproval';
 import '../styles/Admin.css';
 import UniversityManagementPage from '@/components/admin/UniversityManagementPage';
 import CareerManagement from '@/components/admin/CareerManagement';
@@ -55,6 +56,8 @@ const Admin = () => {
         return <UserManagement />;
       case 'quizzes':
         return <QuizManagement onAlert={showAlert} />;
+      case 'events':
+        return <SeminarApproval onAlert={showAlert} />;
       case 'universities':
         return <UniversityManagementPage/>;
       case 'careers':

@@ -78,13 +78,6 @@ const NavBar = ({ isAuthenticated, onLogout, userRole }: NavBarProps) => {
                   <FaCalendarAlt />
                   <span className="nav-text">Quản lý sự kiện</span>
                 </Link>
-                <Link 
-                  to="/seminars" 
-                  className={`nav-item ${location.pathname === '/event' ? 'active' : ''}`}
-                >
-                  <FaCalendarAlt />
-                  <span className="nav-text">Sự kiện</span>
-                </Link>
               </>
             )}
 

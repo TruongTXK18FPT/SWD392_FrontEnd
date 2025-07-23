@@ -64,15 +64,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       setTimeout(async () => {
         try {
           const userData = await getCurrentUser();
+          console.log('LoginForm: userData received:', userData);
           const userRole = userData?.role;
+          console.log('LoginForm: userRole extracted:', userRole);
 
           // Redirect based on user role (case-insensitive)
           if (userRole && userRole.toLowerCase() === "admin") {
             navigate("/admin");
+          } else if (userRole && userRole.toLowerCase() === "event_manager") {
+            navigate("/event-manager");
           } else {
             navigate("/");
           }
         } catch (error) {
+          console.error('LoginForm: Error getting user data:', error);
           navigate("/"); // Default redirect
         }
       }, 1500);

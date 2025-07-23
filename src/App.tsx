@@ -33,9 +33,10 @@ import Products from "./pages/Products";
 import Solutions from "./pages/Solutions";
 import QuizTakingPage from "./pages/QuizTakingPage";
 import QuizResultPage from "./pages/QuizResultPage";
+import EventManagerPage from "./pages/EventManagerPage";
 
 interface User {
-  id: string;
+  id: number; // Changed from string to number to match backend
   email: string;
   role: string;
   fullName?: string;
@@ -203,6 +204,19 @@ function App() {
                 requireExactRole={true}
               >
                 <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/event-manager"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                userRole={user?.role?.toLowerCase()}
+                requiredRole="event_manager"
+                requireExactRole={true}
+              >
+                <EventManagerPage />
               </ProtectedRoute>
             }
           />
