@@ -171,6 +171,9 @@ const Profile: React.FC = () => {
                   <FaEdit /> {profile?.fullName ? 'Chỉnh sửa' : 'Thêm thông tin'}
                 </button>
             )}
+            <button className="edit-profile-button" onClick={() => window.location.href = '/my-result'}>
+              <FaUser/> Kết quả
+            </button>
           </div>
 
           {!isEditing ? (

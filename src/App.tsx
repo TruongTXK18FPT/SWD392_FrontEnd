@@ -33,6 +33,7 @@ import Solutions from "./pages/Solutions";
 import QuizTakingPage from "./pages/QuizTakingPage";
 import QuizResultPage from "./pages/QuizResultPage";
 import EventManagerPage from "./pages/EventManagerPage";
+import MyResult from "./pages/MyResult";
 interface User {
   id: number; // Changed from string to number to match backend
   email: string;
@@ -266,6 +267,14 @@ function App() {
     </ProtectedRoute>
   }
 />
+          <Route
+            path="/my-result"
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <MyResult />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Public Routes */}
 
