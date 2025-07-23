@@ -31,6 +31,8 @@ import Support from "./pages/Support";
 import Careers from "./pages/Careers";
 import Products from "./pages/Products";
 import Solutions from "./pages/Solutions";
+import QuizTakingPage from "./pages/QuizTakingPage";
+import QuizResultPage from "./pages/QuizResultPage";
 
 interface User {
   id: string;
@@ -225,7 +227,35 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+  path="/quiz/:type"
+  element={
+    <ProtectedRoute isAuthenticated={isAuthenticated}>
+      <Quiz />
+    </ProtectedRoute>
+  }
+/>
 
+{/* Quiz taking page */}
+<Route
+  path="/quiz/take/:type"
+  element={
+    <ProtectedRoute isAuthenticated={isAuthenticated}>
+      <QuizTakingPage />
+    </ProtectedRoute>
+  }
+/>
+
+{/* Quiz result page */}
+<Route
+  path="/quiz/result/:type"
+  element={
+    <ProtectedRoute isAuthenticated={isAuthenticated}>
+      <QuizResultPage />
+    </ProtectedRoute>
+  }
+/>
+          
           {/* Public Routes */}
 
           {/* Add more routes as needed */}
