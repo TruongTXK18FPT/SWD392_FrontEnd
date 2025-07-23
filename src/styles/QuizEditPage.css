@@ -564,7 +564,6 @@ textarea[class*="content"]::placeholder {
   opacity: 1 !important;
   visibility: visible !important;
 }
-
 .primary-btn {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #fff;

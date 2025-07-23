@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import NavBar from "./components/NavBar";
@@ -34,7 +33,6 @@ import Solutions from "./pages/Solutions";
 import QuizTakingPage from "./pages/QuizTakingPage";
 import QuizResultPage from "./pages/QuizResultPage";
 import EventManagerPage from "./pages/EventManagerPage";
-
 interface User {
   id: number; // Changed from string to number to match backend
   email: string;
@@ -164,7 +162,6 @@ function App() {
           <Route path="/admin/event-create" element={<CreateSeminarPage />} />
           
           <Route path="/admin/event-edit/:id" element={<EditSeminarPage />} />
-=======
           <Route path="/register" element={<Register />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
@@ -269,7 +266,7 @@ function App() {
     </ProtectedRoute>
   }
 />
-          
+
           {/* Public Routes */}
 
           {/* Add more routes as needed */}

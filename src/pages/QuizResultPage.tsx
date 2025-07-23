@@ -1,7 +1,6 @@
 import React from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import QuizResult from '../components/quiz/QuizResult';
-import LoadingSpinner from '../components/LoadingSpinner';
 
 interface TransformedResult {
   type: string;

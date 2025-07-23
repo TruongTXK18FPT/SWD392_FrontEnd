@@ -224,11 +224,11 @@ class QuizService {
         const axiosError = error as AxiosError;
         console.error('Response data:', axiosError.response?.data);
         console.error('Response status:', axiosError.response?.status);
-
+        
         // More detailed error messages based on status codes
         const status = axiosError.response?.status;
         const responseData = axiosError.response?.data;
-
+        
         switch (status) {
           case 401:
             throw new Error('Unauthenticated - Please login again');
@@ -257,13 +257,13 @@ class QuizService {
 
     // Find categories by name instead of hardcoded IDs
     const mbtiCategory = categories.find(c =>
-        c.name.toUpperCase().includes('MBTI') ||
-        c.name.toUpperCase().includes('MYERS')
+      c.name.toUpperCase().includes('MBTI') ||
+      c.name.toUpperCase().includes('MYERS')
     );
 
     const discCategory = categories.find(c =>
-        c.name.toUpperCase().includes('DISC') ||
-        c.name.toUpperCase().includes('DOMINANCE')
+      c.name.toUpperCase().includes('DISC') ||
+      c.name.toUpperCase().includes('DOMINANCE')
     );
 
     const availableTypes: { type: 'MBTI' | 'DISC'; category: Category }[] = [];
@@ -291,9 +291,9 @@ class QuizService {
     const startTime = performance.now();
 
     const backendQuestions = await this.fetchAPI<BackendQuizQuestion[]>(
-        `/quiz-questions/quiz/${quizId}`,
-        {},
-        this.QUESTIONS_CACHE_TTL // Cache questions for 10 minutes
+      `/quiz-questions/quiz/${quizId}`,
+      {},
+      this.QUESTIONS_CACHE_TTL // Cache questions for 10 minutes
     );
 
     const endTime = performance.now();
@@ -321,8 +321,8 @@ class QuizService {
   private transformationCache = new Map<string, (MBTIQuestion | DISCQuestionSet)[]>();
 
   transformQuestionsForFrontend(
-      backendQuestions: BackendQuizQuestion[],
-      type: 'MBTI' | 'DISC'
+    backendQuestions: BackendQuizQuestion[],
+    type: 'MBTI' | 'DISC'
   ): (MBTIQuestion | DISCQuestionSet)[] {
     // Create a cache key based on questions and type
     const cacheKey = `transform_${type}_${backendQuestions.map(q => q.id).join('_')}`;
@@ -350,7 +350,7 @@ class QuizService {
         } as MBTIQuestion;
       });
     } else {
-
+      // DISC questions - group options by question
       result = backendQuestions.map(q => {
         return {
           id: q.id,
@@ -363,11 +363,13 @@ class QuizService {
       });
     }
 
+    // Cache the transformation result
     this.transformationCache.set(cacheKey, result);
 
     return result;
   }
 
+  // Helper method to determine MBTI type from dimension
   private determineMBTIType(dimension: string): 'E/I' | 'S/N' | 'T/F' | 'J/P' {
     switch (dimension) {
       case 'E': case 'I': return 'E/I';
@@ -378,15 +380,18 @@ class QuizService {
     }
   }
 
+  // Enhanced quiz submission with secure microservices integration
   async submitQuiz(submissionData: QuizSubmissionData): Promise<QuizResult> {
     const { quizId, answers: frontendAnswers } = submissionData;
 
+    // Get backend questions to map answers to optionIds
     const backendQuestions = await this.fetchAPI<BackendQuizQuestion[]>(
-        `/quiz-questions/quiz/${quizId}`,
-        {},
-        this.QUESTIONS_CACHE_TTL
+      `/quiz-questions/quiz/${quizId}`,
+      {},
+      this.QUESTIONS_CACHE_TTL
     );
 
+    // Determine quiz type from first question
     const firstQuestion = backendQuestions[0];
     if (!firstQuestion) {
       throw new Error('No questions found for this quiz');
@@ -394,6 +399,7 @@ class QuizService {
 
     const quizType: 'MBTI' | 'DISC' = firstQuestion.dimension === 'DISC' ? 'DISC' : 'MBTI';
 
+    // Convert answers to the format expected by backend (questionId -> optionId)
     const formattedAnswers: Record<number, number> = {};
 
     for (const backendQuestion of backendQuestions) {
@@ -402,17 +408,17 @@ class QuizService {
 
       if (answer) {
         if (quizType === 'MBTI') {
-
+          // For MBTI, find the option that matches the selected text
           const selectedOption = backendQuestion.options.find(opt => opt.optionText === answer);
           if (selectedOption) {
             formattedAnswers[questionId] = selectedOption.id;
           }
         } else if (quizType === 'DISC') {
-
+          // For DISC, handle the most/least selection
           const discAnswer = answer as { most?: 'D' | 'I' | 'S' | 'C', least?: 'D' | 'I' | 'S' | 'C' };
 
           if (discAnswer.most) {
-
+            // Find the option that matches the "most" selection
             const mostOption = backendQuestion.options.find(opt => opt.targetTrait === discAnswer.most);
             if (mostOption) {
               formattedAnswers[questionId] = mostOption.id;
@@ -453,7 +459,7 @@ class QuizService {
 
   // Get user's quiz results by email (for parent dashboard)
   async getUserResultsByEmail(email: string): Promise<{
-    userId: number;
+    userId: string;
     email: string;
     fullName: string;
     results: Array<{
@@ -471,7 +477,7 @@ class QuizService {
   }> {
     try {
       const response = await this.fetchAPI<{
-        userId: number;
+        userId: string;
         email: string;
         totalQuizzesTaken: number;
         quizResults: Array<{
@@ -511,61 +517,65 @@ class QuizService {
   }
   // Get quiz results by ID for management
   async getMyQuizResults(): Promise<{
-    userId: number;
-    email: string;
-    fullName: string;
-    results: Array<{
-      id: number;
-      personalityCode: string;
-      nickname?: string;
-      keyTraits?: string;
-      description: string;
-      careerRecommendations?: string;
-      universityRecommendations?: string;
-      scores?: Record<string, number>;
-      submittedAt: string;
-      quizType: string;
-    }>;
-  }> {
-    try {
-      const response = await this.fetchAPI<{
-        userId: number;
-        email: string;
-        fullName: string;
-        quizResults: Array<{
-          resultId: number;
-          personalityCode?: string;
-          resultType: string;
-          personalityName?: string;
-          personalityDescription?: string;
-          timeSubmit: string;
-          resultJson?: string;
-        }>;
-      }>('/quiz-results/user/me');
+  userId: string;
+  email: string;
+  fullName: string;
+  results: Array<{
+    id: number;
+    personalityCode: string;
+    nickname?: string;
+    keyTraits?: string;
+    description: string;
+    careerRecommendations?: string;
+    universityRecommendations?: string;
+    scores?: Record<string, number>;
+    submittedAt: string;
+    quizType: string;
+  }>;
+}> {
+  try {
+    const response = await this.fetchAPI<{
+      userId: string;
+      email: string;
+      fullName: string;
+      quizResults: Array<{
+        resultId: number;
+        personalityCode?: string;
+        resultType: string;
+        personalityName?: string;
+        personalityDescription?: string;
+        timeSubmit: string;
+        resultJson?: string;
+      }>;
+    }>('/quiz-results/user/me');
 
-      if (!response) {
-        throw new Error('No response received from server');
-      }
-      return {
-        userId: response.userId,
-        email: response.email,
-        fullName: response.fullName,
-        results: response.quizResults?.map(result => ({
-          id: result.resultId,
-          personalityCode: result.personalityCode || result.resultType,
-          nickname: result.personalityName,
-          description: result.personalityDescription || '',
-          submittedAt: result.timeSubmit,
-          quizType: result.resultType,
-          ...(result.resultJson ? JSON.parse(result.resultJson) : {})
-        })) || []
-      };
-    } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
+    if (!response) {
+      throw new Error('No response received from server');
     }
+    return {
+      userId: response.userId,
+      email: response.email,
+      fullName: response.fullName,
+      results: response.quizResults?.map(result => ({
+        id: result.resultId,
+        personalityCode: result.personalityCode || result.resultType,
+        nickname: result.personalityName,
+        description: result.personalityDescription || '',
+        submittedAt: result.timeSubmit,
+        quizType: result.resultType,
+        ...(result.resultJson ? JSON.parse(result.resultJson) : {})
+      })) || []
+    };
+  } catch (error) {
+    console.error('API request failed:', error);
+    throw error;
   }
-
+}
+  /**
+   * Get detailed quiz result by ID
+   * @param resultId The ID of the quiz result to fetch
+   * @returns A promise that resolves to the quiz result details
+   */
   async getQuizResultById(resultId: number): Promise<QuizResult> {
     try {
       // Fetch the detailed result from the backend
@@ -585,7 +595,7 @@ class QuizService {
 
       // Parse the resultJson if it exists
       const jsonData = response.resultJson ? JSON.parse(response.resultJson) : {};
-
+      
       // Map the response to the QuizResult interface
       return {
         id: response.resultId,
@@ -604,7 +614,7 @@ class QuizService {
       throw error;
     }
   }
-
+  // Get all quizzes for management
   async getAllQuizzes(): Promise<QuizData[]> {
     return this.fetchAPI<QuizData[]>('/quiz', {}, this.DEFAULT_CACHE_TTL);
   }
@@ -652,8 +662,8 @@ class QuizService {
   }
 
   async getQuizQuestionById(questionId: number): Promise<QuizQuestionResponse> {
-    return quizService.fetchAPI<QuizQuestionResponse>(`/quiz-questions/${questionId}`);
-  }
+  return quizService.fetchAPI<QuizQuestionResponse>(`/quiz-questions/${questionId}`);
+}
 
   // Update quiz question
   async updateQuizQuestion(questionId: number, questionData: QuizQuestionCreateRequest): Promise<QuizQuestionResponse> {
@@ -664,9 +674,29 @@ class QuizService {
     });
   }
 
+  // Delete quiz question
+  async deleteQuizQuestion(questionId: number): Promise<void> {
+    this.cache.clear();
+    return this.fetchAPI<void>(`/quiz-questions/${questionId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  // === Quiz Options Management Functions ===
+
   // Get options by question ID
   async getOptionsByQuestionId(questionId: number): Promise<QuizOptionsDTO[]> {
     return this.fetchAPI<QuizOptionsDTO[]>(`/quiz-options/question/${questionId}`, {}, this.DEFAULT_CACHE_TTL);
+  }
+
+  // Get options by multiple question IDs
+  async getOptionsByQuestionIds(questionIds: number[]): Promise<QuizOptionsDTO[]> {
+    return this.fetchAPI<QuizOptionsDTO[]>(`/quiz-options/questions?questionIds=${questionIds.join(',')}`, {}, this.DEFAULT_CACHE_TTL);
+  }
+
+  // Get specific option by ID
+  async getOptionById(optionId: number): Promise<QuizOptionsDTO> {
+    return this.fetchAPI<QuizOptionsDTO>(`/quiz-options/${optionId}`, {}, this.DEFAULT_CACHE_TTL);
   }
 
   // Create a new quiz option
@@ -696,6 +726,49 @@ class QuizService {
     });
   }
 
+  // Delete a quiz option
+  async deleteQuizOption(optionId: number): Promise<void> {
+    this.cache.clear();
+    return this.fetchAPI<void>(`/quiz-options/${optionId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  // Delete all options for a question
+  async deleteOptionsByQuestionId(questionId: number): Promise<void> {
+    this.cache.clear();
+    return this.fetchAPI<void>(`/quiz-options/question/${questionId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  // Get options by target trait
+  async getOptionsByTargetTrait(targetTrait: string): Promise<QuizOptionsDTO[]> {
+    return this.fetchAPI<QuizOptionsDTO[]>(`/quiz-options/target-trait/${targetTrait}`, {}, this.DEFAULT_CACHE_TTL);
+  }
+
+  // Get options by score value
+  async getOptionsByScoreValue(scoreValue: 'NEGATIVE_ONE' | 'ZERO' | 'POSITIVE_ONE' | 'DISC_TWO'): Promise<QuizOptionsDTO[]> {
+    return this.fetchAPI<QuizOptionsDTO[]>(`/quiz-options/score-value/${scoreValue}`, {}, this.DEFAULT_CACHE_TTL);
+  }
+
+  // Count options for a question
+  async countOptionsByQuestionId(questionId: number): Promise<{ count: number }> {
+    return this.fetchAPI<{ count: number }>(`/quiz-options/question/${questionId}/count`, {}, this.DEFAULT_CACHE_TTL);
+  }
+
+  // Check if option exists
+  async optionExists(optionId: number): Promise<{ exists: boolean }> {
+    return this.fetchAPI<{ exists: boolean }>(`/quiz-options/${optionId}/exists`, {}, this.DEFAULT_CACHE_TTL);
+  }
+
+  // Get available score values
+  async getAvailableScoreValues(): Promise<('NEGATIVE_ONE' | 'ZERO' | 'POSITIVE_ONE' | 'DISC_TWO')[]> {
+    return this.fetchAPI<('NEGATIVE_ONE' | 'ZERO' | 'POSITIVE_ONE' | 'DISC_TWO')[]>('/quiz-options/score-values', {}, this.DEFAULT_CACHE_TTL);
+  }
+
+  // === Helper Functions for Quiz Types ===
+
   // Get appropriate score values based on quiz type
   getScoreValuesForQuizType(isDiscQuiz: boolean): { value: 'NEGATIVE_ONE' | 'ZERO' | 'POSITIVE_ONE' | 'DISC_TWO', label: string, numericValue: number }[] {
     if (isDiscQuiz) {
@@ -703,12 +776,22 @@ class QuizService {
         { value: 'DISC_TWO', label: 'Most Like Me (2)', numericValue: 2 }
       ];
     } else {
-
+      // MBTI quiz
       return [
         { value: 'NEGATIVE_ONE', label: 'Disagree (-1)', numericValue: -1 },
         { value: 'ZERO', label: 'Neutral (0)', numericValue: 0 },
         { value: 'POSITIVE_ONE', label: 'Agree (1)', numericValue: 1 }
       ];
+    }
+  }
+
+  // Get appropriate traits based on quiz type
+  getTraitsForQuizType(isDiscQuiz: boolean): string[] {
+    if (isDiscQuiz) {
+      return ['D', 'I', 'S', 'C'];
+    } else {
+      // MBTI quiz
+      return ['E', 'I', 'S', 'N', 'T', 'F', 'J', 'P'];
     }
   }
 
