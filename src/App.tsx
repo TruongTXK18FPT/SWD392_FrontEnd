@@ -24,7 +24,13 @@ import { logOut } from "./services/authService";
 import EditSeminarPage from './pages/EditSeminarPage'
 import CreateSeminarPage from './pages/CreateSeminarPage'
 import SeminarDetailPage from './pages/SeminarDetailPage'
-
+import PersonalityPage from "./pages/PersonalityPages";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Support from "./pages/Support";
+import Careers from "./pages/Careers";
+import Products from "./pages/Products";
+import Solutions from "./pages/Solutions";
 
 interface User {
   id: string;
@@ -157,6 +163,13 @@ function App() {
           <Route path="/admin/event-edit/:id" element={<EditSeminarPage />} />
 =======
           <Route path="/register" element={<Register />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/support" element={<Support />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/solutions" element={<Solutions />} />
+          <Route path="/personality" element={<PersonalityPage />} />
           <Route
             path="/seminars" element={<SeminarListPage />}/>
           <Route path="/seminars/:seminarId" element={<SeminarDetailPage />} />
