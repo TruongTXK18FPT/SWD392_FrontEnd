@@ -8,7 +8,24 @@ export const getCurrentUser = async () => {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data.result;
+  
+  const user = response.data.result;
+  console.log('getCurrentUser API response:', user);
+  
+  // Extract role from roleDto.roleName and normalize it
+  const role = user?.roleDto?.roleName || user?.role;
+  console.log('Extracted role:', role);
+  
+  // Ensure ID is a number
+  const userId = typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
+  console.log('User ID:', userId, 'type:', typeof userId);
+  
+  // Return user with normalized role field and numeric ID
+  return {
+    ...user,
+    id: userId,
+    role: role
+  };
 };
 
 // Define interface for profile data, excluding provinceCode and districtCode

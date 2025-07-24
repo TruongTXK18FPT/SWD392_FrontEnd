@@ -38,7 +38,6 @@ interface QuizResultProps {
     fullName: string;
   };
 }
-
 const QuizResult: React.FC<QuizResultProps> = ({ type, result, onRetake, userInfo }) => {
   const [downloadLoading, setDownloadLoading] = React.useState(false);
 

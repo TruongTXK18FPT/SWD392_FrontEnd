@@ -5,10 +5,10 @@ import {
   FaClock,
   FaUsers,
   FaDollarSign,
-  FaCheck,
   FaTimes,
-  FaPause,
-  FaPlay,
+  FaEdit,
+  FaTrash,
+  FaSave,
 } from 'react-icons/fa';
 import Button from '../components/Button';
 import Alert from '../components/Alert';
@@ -16,16 +16,20 @@ import '../styles/EventManagerPage.css';
 import { Seminar } from '../types/Seminar';
 import { 
   createSeminar, 
-  fetchAllSeminars, 
+  fetchEventManagerSeminars, 
   updateSeminarStatus, 
+  updateSeminar,
+  deleteSeminar,
   CreateSeminarRequest 
 } from '../api/SeminarApi';
+import { getCurrentUser } from '../services/userService';
 
 const EventManagerPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'view' | 'create'>('view');
   const [seminars, setSeminars] = useState<Seminar[]>([]);
   const [loading, setLoading] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [alert, setAlert] = useState<{
     show: boolean;
     type: 'success' | 'error' | 'warning';
@@ -51,15 +55,64 @@ const EventManagerPage: React.FC = () => {
   });
 
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+  
+  // State for editing seminars
+  const [editingSeminarId, setEditingSeminarId] = useState<number | null>(null);
+  const [editFormData, setEditFormData] = useState<CreateSeminarRequest>({
+    title: '',
+    description: '',
+    duration: 1,
+    price: 0,
+    meetingUrl: '',
+    formUrl: '',
+    slot: 10,
+    imageUrl: '',
+    startingTime: '',
+    endingTime: '',
+  });
+  const [editFormErrors, setEditFormErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    fetchSeminars();
+    const fetchData = async () => {
+      try {
+        // Fetch current user first
+        const userData = await getCurrentUser();
+        setCurrentUser(userData);
+        
+        // Then fetch seminars created by this event manager
+        if (userData?.id) {
+          console.log('🔄 Fetching seminars for event manager:', userData.id);
+          const seminarsData = await fetchEventManagerSeminars(userData.id);
+          setSeminars(seminarsData);
+        } else {
+          console.warn('⚠️ No user ID found, cannot fetch event manager seminars');
+        }
+      } catch (error) {
+        console.error('Failed to fetch initial data:', error);
+        setAlert({
+          show: true,
+          type: 'error',
+          message: 'Không thể tải dữ liệu',
+          description: 'Vui lòng thử lại sau',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const fetchSeminars = async () => {
+    if (!currentUser?.id) {
+      console.warn('⚠️ No current user ID, cannot fetch seminars');
+      return;
+    }
+
     setLoading(true);
     try {
-      const data = await fetchAllSeminars();
+      console.log('🔄 Refreshing seminars for event manager:', currentUser.id);
+      const data = await fetchEventManagerSeminars(currentUser.id);
       setSeminars(data);
     } catch (error) {
       console.error('Failed to fetch seminars:', error);
@@ -177,6 +230,35 @@ const EventManagerPage: React.FC = () => {
 
     setFormLoading(true);
     try {
+      // Enhanced user authentication check with debugging
+      console.log('🔍 Form submission - Current user state:', currentUser);
+      console.log('🔍 Form submission - User ID:', currentUser?.id);
+      console.log('🔍 Form submission - User ID type:', typeof currentUser?.id);
+      console.log('🔍 Form submission - User email:', currentUser?.email);
+      console.log('🔍 Form submission - User role:', currentUser?.role);
+      
+      // If user is not loaded, try to fetch it again
+      let userToUse = currentUser;
+      if (!currentUser) {
+        console.log('⚠️ User not found in state, attempting to fetch fresh user data...');
+        try {
+          userToUse = await getCurrentUser();
+          setCurrentUser(userToUse);
+          console.log('✅ Fresh user data fetched:', userToUse);
+        } catch (userError) {
+          console.error('❌ Failed to fetch fresh user data:', userError);
+          throw new Error('User data not loaded. Please refresh the page and try again.');
+        }
+      }
+      
+      if (!userToUse) {
+        throw new Error('User data not loaded. Please refresh the page and try again.');
+      }
+      
+      if (!userToUse.id) {
+        throw new Error('User ID not found. Please log out and log back in.');
+      }
+
       const seminarData: CreateSeminarRequest = {
         ...formData,
         startingTime: formatDateTimeForAPI(formData.startingTime),
@@ -189,9 +271,22 @@ const EventManagerPage: React.FC = () => {
       console.log('📅 Formatted times for API:');
       console.log('  startingTime:', seminarData.startingTime);
       console.log('  endingTime:', seminarData.endingTime);
-      console.log('📄 Complete seminar data being sent:', JSON.stringify(seminarData, null, 2));
+      console.log('👤 Current user ID:', currentUser.id);
+      console.log('� User ID type:', typeof currentUser.id);
+      console.log('�📄 Complete seminar data being sent:', JSON.stringify(seminarData, null, 2));
+      console.log('📋 Checking data format matches backend expectations:');
+      console.log('  ✓ title:', typeof seminarData.title, '=', seminarData.title);
+      console.log('  ✓ description:', typeof seminarData.description, '=', seminarData.description);
+      console.log('  ✓ duration:', typeof seminarData.duration, '=', seminarData.duration);
+      console.log('  ✓ price:', typeof seminarData.price, '=', seminarData.price);
+      console.log('  ✓ meetingUrl:', typeof seminarData.meetingUrl, '=', seminarData.meetingUrl);
+      console.log('  ✓ formUrl:', typeof seminarData.formUrl, '=', seminarData.formUrl);
+      console.log('  ✓ slot:', typeof seminarData.slot, '=', seminarData.slot);
+      console.log('  ✓ imageUrl:', typeof seminarData.imageUrl, '=', seminarData.imageUrl);
+      console.log('  ✓ startingTime format:', seminarData.startingTime);
+      console.log('  ✓ endingTime format:', seminarData.endingTime);
 
-      await createSeminar(seminarData);
+      await createSeminar(seminarData, userToUse.id);
       
       setAlert({
         show: true,
@@ -234,8 +329,61 @@ const EventManagerPage: React.FC = () => {
   };
 
   const handleStatusUpdate = async (seminarId: number, newStatus: string) => {
+    if (!currentUser?.id) {
+      setAlert({
+        show: true,
+        type: 'error',
+        message: 'Không thể xác định thông tin người dùng',
+        description: 'Vui lòng đăng nhập lại.',
+      });
+      return;
+    }
+
+    // Find the seminar to verify ownership
+    const seminar = seminars.find(s => s.id === seminarId);
+    if (!seminar) {
+      setAlert({
+        show: true,
+        type: 'error',
+        message: 'Không tìm thấy hội thảo',
+        description: 'Hội thảo có thể đã bị xóa hoặc bạn không có quyền truy cập.',
+      });
+      return;
+    }
+
+    // Verify that the seminar belongs to the current user
+    if (seminar.createBy !== currentUser.id) {
+      setAlert({
+        show: true,
+        type: 'error',
+        message: 'Không có quyền cập nhật',
+        description: 'Bạn chỉ có thể cập nhật hội thảo do mình tạo.',
+      });
+      return;
+    }
+
+    // Verify that the seminar is approved
+    if (seminar.statusApprove !== 'APPROVED') {
+      setAlert({
+        show: true,
+        type: 'warning',
+        message: 'Hội thảo chưa được duyệt',
+        description: 'Chỉ có thể cập nhật trạng thái khi hội thảo đã được admin duyệt.',
+      });
+      return;
+    }
+
     try {
-      await updateSeminarStatus(seminarId, newStatus);
+      console.log('🔄 Updating seminar status:', {
+        seminarId,
+        newStatus,
+        eventManagerId: currentUser.id,
+        currentStatus: seminar.status,
+        seminarTitle: seminar.title,
+        seminarCreatedBy: seminar.createBy
+      });
+      
+      await updateSeminarStatus(seminarId, newStatus, currentUser.id);
       
       setAlert({
         show: true,
@@ -248,10 +396,187 @@ const EventManagerPage: React.FC = () => {
       
     } catch (error) {
       console.error('Failed to update status:', error);
+      
+      // Show more specific error messages based on the error
+      let errorMessage = 'Không thể cập nhật trạng thái';
+      let errorDescription = 'Vui lòng thử lại sau.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('500')) {
+          errorMessage = 'Lỗi server khi cập nhật trạng thái';
+          errorDescription = 'Server đang gặp sự cố. Vui lòng liên hệ admin hoặc thử lại sau.';
+        } else if (error.message.includes('401') || error.message.includes('403')) {
+          errorMessage = 'Không có quyền cập nhật';
+          errorDescription = 'Bạn không có quyền cập nhật trạng thái hội thảo này.';
+        } else if (error.message.includes('404')) {
+          errorMessage = 'Không tìm thấy hội thảo';
+          errorDescription = 'Hội thảo có thể đã bị xóa hoặc không tồn tại.';
+        }
+      }
+      
       setAlert({
         show: true,
         type: 'error',
-        message: 'Không thể cập nhật trạng thái',
+        message: errorMessage,
+        description: errorDescription,
+      });
+    }
+  };
+
+  // Handle editing seminar
+  const handleEditSeminar = (seminar: Seminar) => {
+    setEditingSeminarId(seminar.id);
+    setEditFormData({
+      title: seminar.title,
+      description: seminar.description,
+      duration: seminar.duration,
+      price: seminar.price,
+      meetingUrl: seminar.meetingUrl,
+      formUrl: seminar.formUrl,
+      slot: seminar.slot,
+      imageUrl: seminar.imageUrl,
+      startingTime: seminar.startingTime,
+      endingTime: seminar.endingTime,
+    });
+    setEditFormErrors({});
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditingSeminarId(null);
+    setEditFormData({
+      title: '',
+      description: '',
+      duration: 1,
+      price: 0,
+      meetingUrl: '',
+      formUrl: '',
+      slot: 10,
+      imageUrl: '',
+      startingTime: '',
+      endingTime: '',
+    });
+    setEditFormErrors({});
+  };
+
+  // Handle edit form input change
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: name === 'duration' || name === 'price' || name === 'slot'
+        ? Number(value)
+        : value,
+    }));
+    
+    // Clear error when user starts typing
+    if (editFormErrors[name]) {
+      setEditFormErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  // Save edited seminar
+  const handleSaveEdit = async () => {
+    if (!currentUser?.id || !editingSeminarId) {
+      setAlert({
+        show: true,
+        type: 'error',
+        message: 'Không thể xác định thông tin người dùng hoặc hội thảo',
+      });
+      return;
+    }
+
+    try {
+      // Format times for API
+      const formattedData = {
+        ...editFormData,
+        startingTime: editFormData.startingTime.includes('T') 
+          ? editFormData.startingTime.replace('T', ' ')
+          : editFormData.startingTime,
+        endingTime: editFormData.endingTime.includes('T')
+          ? editFormData.endingTime.replace('T', ' ')
+          : editFormData.endingTime,
+      };
+
+      await updateSeminar(editingSeminarId, formattedData, currentUser.id);
+      
+      setAlert({
+        show: true,
+        type: 'success',
+        message: 'Cập nhật hội thảo thành công!',
+      });
+
+      // Refresh seminars list and exit edit mode
+      fetchSeminars();
+      handleCancelEdit();
+      
+    } catch (error) {
+      console.error('Failed to update seminar:', error);
+      setAlert({
+        show: true,
+        type: 'error',
+        message: 'Không thể cập nhật hội thảo',
+        description: 'Vui lòng kiểm tra thông tin và thử lại.',
+      });
+    }
+  };
+
+  // Handle delete seminar
+  const handleDeleteSeminar = async (seminarId: number) => {
+    if (!currentUser?.id) {
+      setAlert({
+        show: true,
+        type: 'error',
+        message: 'Không thể xác định thông tin người dùng',
+      });
+      return;
+    }
+
+    // Find the seminar to verify it can be deleted
+    const seminar = seminars.find(s => s.id === seminarId);
+    if (!seminar) {
+      setAlert({
+        show: true,
+        type: 'error',
+        message: 'Không tìm thấy hội thảo',
+      });
+      return;
+    }
+
+    // Check if seminar is approved (cannot delete approved seminars)
+    if (seminar.statusApprove === 'APPROVED') {
+      setAlert({
+        show: true,
+        type: 'warning',
+        message: 'Không thể xóa hội thảo đã được duyệt',
+        description: 'Hội thảo đã được admin duyệt không thể xóa.',
+      });
+      return;
+    }
+
+    // Confirm deletion
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa hội thảo "${seminar.title}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteSeminar(seminarId, currentUser.id);
+      
+      setAlert({
+        show: true,
+        type: 'success',
+        message: 'Đã xóa hội thảo thành công!',
+      });
+
+      // Refresh seminars list
+      fetchSeminars();
+      
+    } catch (error) {
+      console.error('Failed to delete seminar:', error);
+      setAlert({
+        show: true,
+        type: 'error',
+        message: 'Không thể xóa hội thảo',
         description: 'Vui lòng thử lại sau.',
       });
     }
@@ -306,7 +631,7 @@ const EventManagerPage: React.FC = () => {
           className={`tab-button ${activeTab === 'view' ? 'active' : ''}`}
           onClick={() => setActiveTab('view')}
         >
-          <FaEye /> Xem tất cả hội thảo
+          <FaEye /> Hội thảo của tôi
         </button>
         <button
           className={`tab-button ${activeTab === 'create' ? 'active' : ''}`}
@@ -327,67 +652,190 @@ const EventManagerPage: React.FC = () => {
               {seminars.map((seminar) => (
                 <div key={seminar.id} className="seminar-card">
                   <div className="seminar-image">
-                    <img src={seminar.imageUrl} alt={seminar.title} />
+                    <img 
+                      src={seminar.imageUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDQwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjNjY3ZWVhIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCI+U2VtaW5hcjwvdGV4dD4KPHN2Zz4='} 
+                      alt={seminar.title}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDQwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjNjY3ZWVhIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCI+U2VtaW5hcjwvdGV4dD4KPHN2Zz4=';
+                      }}
+                    />
                   </div>
                   <div className="seminar-content">
-                    <h3>{seminar.title}</h3>
-                    <p className="seminar-description">{seminar.description}</p>
-                    
-                    <div className="seminar-meta">
-                      <div className="meta-item">
-                        <FaClock /> {seminar.duration} phút
-                      </div>
-                      <div className="meta-item">
-                        <FaUsers /> {seminar.slot} slots
-                      </div>
-                      <div className="meta-item">
-                        <FaDollarSign /> {seminar.price === 0 ? 'Miễn phí' : `${seminar.price.toLocaleString()}₫`}
-                      </div>
-                    </div>
+                    {editingSeminarId === seminar.id ? (
+                      // Edit mode
+                      <div className="edit-form">
+                        <div className="form-group">
+                          <label>Tiêu đề *</label>
+                          <input
+                            type="text"
+                            name="title"
+                            value={editFormData.title}
+                            onChange={handleEditInputChange}
+                            className={editFormErrors.title ? 'error' : ''}
+                            maxLength={255}
+                          />
+                          {editFormErrors.title && <span className="error-text">{editFormErrors.title}</span>}
+                        </div>
 
-                    <div className="seminar-status">
-                      {getStatusBadge(seminar.status)}
-                      {getApprovalBadge(seminar.statusApprove)}
-                    </div>
+                        <div className="form-group">
+                          <label>Mô tả *</label>
+                          <textarea
+                            name="description"
+                            value={editFormData.description}
+                            onChange={handleEditInputChange}
+                            rows={3}
+                            className={editFormErrors.description ? 'error' : ''}
+                            maxLength={1000}
+                          />
+                          {editFormErrors.description && <span className="error-text">{editFormErrors.description}</span>}
+                        </div>
 
-                    <div className="seminar-actions">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        icon={<FaPlay />}
-                        onClick={() => handleStatusUpdate(seminar.id, 'ONGOING')}
-                        disabled={seminar.status === 'ONGOING'}
-                      >
-                        Bắt đầu
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        icon={<FaPause />}
-                        onClick={() => handleStatusUpdate(seminar.id, 'PENDING')}
-                        disabled={seminar.status === 'PENDING'}
-                      >
-                        Tạm dừng
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        icon={<FaCheck />}
-                        onClick={() => handleStatusUpdate(seminar.id, 'COMPLETED')}
-                        disabled={seminar.status === 'COMPLETED'}
-                      >
-                        Hoàn thành
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        icon={<FaTimes />}
-                        onClick={() => handleStatusUpdate(seminar.id, 'CANCELLED')}
-                        disabled={seminar.status === 'CANCELLED'}
-                      >
-                        Hủy
-                      </Button>
-                    </div>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>Thời lượng (phút) *</label>
+                            <input
+                              type="number"
+                              name="duration"
+                              value={editFormData.duration}
+                              onChange={handleEditInputChange}
+                              min="1"
+                              max="480"
+                              className={editFormErrors.duration ? 'error' : ''}
+                            />
+                            {editFormErrors.duration && <span className="error-text">{editFormErrors.duration}</span>}
+                          </div>
+
+                          <div className="form-group">
+                            <label>Giá (VNĐ) *</label>
+                            <input
+                              type="number"
+                              name="price"
+                              value={editFormData.price}
+                              onChange={handleEditInputChange}
+                              min="0"
+                              step="1000"
+                              className={editFormErrors.price ? 'error' : ''}
+                            />
+                            {editFormErrors.price && <span className="error-text">{editFormErrors.price}</span>}
+                          </div>
+
+                          <div className="form-group">
+                            <label>Số chỗ *</label>
+                            <input
+                              type="number"
+                              name="slot"
+                              value={editFormData.slot}
+                              onChange={handleEditInputChange}
+                              min="1"
+                              max="1000"
+                              className={editFormErrors.slot ? 'error' : ''}
+                            />
+                            {editFormErrors.slot && <span className="error-text">{editFormErrors.slot}</span>}
+                          </div>
+                        </div>
+
+                        <div className="edit-actions">
+                          <Button
+                            onClick={handleSaveEdit}
+                            variant="success"
+                            size="sm"
+                          >
+                            <FaSave /> Lưu
+                          </Button>
+                          <Button
+                            onClick={handleCancelEdit}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <FaTimes /> Hủy
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      // View mode
+                      <>
+                        <h3>{seminar.title}</h3>
+                        <p className="seminar-description">{seminar.description}</p>
+                        
+                        <div className="seminar-meta">
+                          <div className="meta-item">
+                            <FaClock /> {seminar.duration} phút
+                          </div>
+                          <div className="meta-item">
+                            <FaUsers /> {seminar.slot} slots
+                          </div>
+                          <div className="meta-item">
+                            <FaDollarSign /> {seminar.price === 0 ? 'Miễn phí' : `${seminar.price.toLocaleString()}₫`}
+                          </div>
+                        </div>
+
+                        <div className="seminar-times">
+                          <div className="meta-item">
+                            <strong>Bắt đầu:</strong> {new Date(seminar.startingTime).toLocaleString('vi-VN')}
+                          </div>
+                          <div className="meta-item">
+                            <strong>Kết thúc:</strong> {new Date(seminar.endingTime).toLocaleString('vi-VN')}
+                          </div>
+                        </div>
+
+                        <div className="seminar-status">
+                          {getStatusBadge(seminar.status)}
+                          {getApprovalBadge(seminar.statusApprove)}
+                        </div>
+
+                        {/* Edit and Delete buttons for pending seminars */}
+                        {seminar.statusApprove === 'PENDING' && (
+                          <div className="seminar-actions">
+                            <Button
+                              onClick={() => handleEditSeminar(seminar)}
+                              variant="outline"
+                              size="sm"
+                            >
+                              <FaEdit /> Chỉnh sửa
+                            </Button>
+                            <Button
+                              onClick={() => handleDeleteSeminar(seminar.id)}
+                              variant="danger"
+                              size="sm"
+                            >
+                              <FaTrash /> Xóa
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Only show status update dropdown if seminar is approved */}
+                        {seminar.statusApprove === 'APPROVED' && (
+                          <div className="seminar-actions">
+                            <div className="status-update-section">
+                              <label>Cập nhật trạng thái:</label>
+                              <select
+                                value={seminar.status}
+                                onChange={(e) => handleStatusUpdate(seminar.id, e.target.value)}
+                                className="status-select"
+                              >
+                                <option value="PENDING">Chờ diễn ra</option>
+                                <option value="ONGOING">Đang diễn ra</option>
+                                <option value="COMPLETED">Đã hoàn thành</option>
+                                <option value="CANCELLED">Đã hủy</option>
+                              </select>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Show message if not approved yet */}
+                        {seminar.statusApprove === 'PENDING' && (
+                          <div className="pending-approval-message">
+                            <p>⏳ Hội thảo đang chờ admin duyệt</p>
+                          </div>
+                        )}
+
+                        {seminar.statusApprove === 'REJECTED' && (
+                          <div className="rejected-message">
+                            <p>❌ Hội thảo đã bị từ chối bởi admin</p>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import NavBar from "./components/NavBar";
@@ -24,22 +23,19 @@ import { logOut } from "./services/authService";
 import EditSeminarPage from './pages/EditSeminarPage'
 import CreateSeminarPage from './pages/CreateSeminarPage'
 import SeminarDetailPage from './pages/SeminarDetailPage'
-import PaymentRedirectHandler from './pages/PaymentRedirectHandler'
-import EventManagerPage from './pages/EventManagerPage'
 import PersonalityPage from "./pages/PersonalityPages";
 import About from "./pages/About";
-import Careers from "./pages/Careers";
 import Contact from "./pages/Contact";
+import Support from "./pages/Support";
+import Careers from "./pages/Careers";
 import Products from "./pages/Products";
 import Solutions from "./pages/Solutions";
-import Support from "./pages/Support";
-
-
-
-
-
+import QuizTakingPage from "./pages/QuizTakingPage";
+import QuizResultPage from "./pages/QuizResultPage";
+import EventManagerPage from "./pages/EventManagerPage";
+import MyResult from "./pages/MyResult";
 interface User {
-  id: string;
+  id: number; // Changed from string to number to match backend
   email: string;
   role: string;
   fullName?: string;
@@ -162,25 +158,19 @@ function App() {
           />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
-
+          <Route path="/event" element={<SeminarListPage />} />
           
           <Route path="/admin/event-create" element={<CreateSeminarPage />} />
           
           <Route path="/admin/event-edit/:id" element={<EditSeminarPage />} />
-          <Route path="/personality" element={<PersonalityPage />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/about" element={<About />} />
-          <Route path="/careers" element={<Careers />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/support" element={<Support />} />
+          <Route path="/careers" element={<Careers />} />
           <Route path="/products" element={<Products />} />
           <Route path="/solutions" element={<Solutions />} />
-          <Route path="/support" element={<Support />} />
-          
-          {/* Public Routes */}
-          
-          {/* Protected Routes */}
-=======
-          <Route path="/register" element={<Register />} />
-          <Route path="/payment-redirect" element={<PaymentRedirectHandler />} />
+          <Route path="/personality" element={<PersonalityPage />} />
           <Route
             path="/seminars" element={<SeminarListPage />}/>
           <Route path="/seminars/:seminarId" element={<SeminarDetailPage />} />
@@ -216,19 +206,6 @@ function App() {
             }
           />
           <Route
-            path="/parent"
-            element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                userRole={user?.role?.toLowerCase()}
-                requiredRole="parent"
-                requireExactRole={true}
-              >
-                <ParentDashBoard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/event-manager"
             element={
               <ProtectedRoute
@@ -242,10 +219,59 @@ function App() {
             }
           />
           <Route
+            path="/parent"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                userRole={user?.role?.toLowerCase()}
+                requiredRole="parent"
+                requireExactRole={true}
+              >
+                <ParentDashBoard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/chat-ai"
             element={
               <ProtectedRoute isAuthenticated={isAuthenticated}>
                 <ChatAi />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+  path="/quiz/:type"
+  element={
+    <ProtectedRoute isAuthenticated={isAuthenticated}>
+      <Quiz />
+    </ProtectedRoute>
+  }
+/>
+
+{/* Quiz taking page */}
+<Route
+  path="/quiz/take/:type"
+  element={
+    <ProtectedRoute isAuthenticated={isAuthenticated}>
+      <QuizTakingPage />
+    </ProtectedRoute>
+  }
+/>
+
+{/* Quiz result page */}
+<Route
+  path="/quiz/result/:type"
+  element={
+    <ProtectedRoute isAuthenticated={isAuthenticated}>
+      <QuizResultPage />
+    </ProtectedRoute>
+  }
+/>
+          <Route
+            path="/my-result"
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <MyResult />
               </ProtectedRoute>
             }
           />

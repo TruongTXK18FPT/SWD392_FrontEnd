@@ -4,12 +4,13 @@ import {
   FaCalendarAlt,
   FaPhone,
   FaMapMarkerAlt,
-  FaEdit,
-  FaEnvelope,
-  FaSave,
-  FaTimes,
-  FaSchool,
   FaVenusMars,
+  FaSchool,
+  FaEdit,
+  FaTimes,
+  FaSave,
+  FaEnvelope,
+  FaUserEdit
 } from "react-icons/fa";
 import { getProfile } from "../services/authService";
 import { getCurrentUser, updateProfile } from "../services/userService";
@@ -171,6 +172,9 @@ const Profile: React.FC = () => {
                   <FaEdit /> {profile?.fullName ? 'Chỉnh sửa' : 'Thêm thông tin'}
                 </button>
             )}
+            <button className="edit-profile-button" onClick={() => window.location.href = '/my-result'}>
+              <FaUser/> Kết quả
+            </button>
           </div>
 
           {!isEditing ? (
@@ -191,19 +195,119 @@ const Profile: React.FC = () => {
           ) : (
               <form onSubmit={handleSaveProfile} className="profile-edit-form">
                 <div className="form-section">
-                  <h3>Chỉnh sửa thông tin</h3>
+                  <h3 className="edit-form-title">
+                    <FaUserEdit className="title-icon" />
+                    <span>Chỉnh sửa thông tin</span>
+                  </h3>
                   <div className="form-grid">
-                    <div className="form-group required"><label>Họ và tên</label><input type="text" value={editData.fullName} onChange={e => setEditData({...editData, fullName: e.target.value})} required /></div>
-                    <div className="form-group"><label>Số điện thoại</label><input type="tel" value={editData.phoneNumber} onChange={e => setEditData({...editData, phoneNumber: e.target.value})} /></div>
-                    <div className="form-group"><label>Ngày sinh</label><input type="date" value={editData.birthDay} onChange={e => setEditData({...editData, birthDay: e.target.value})} max={new Date().toISOString().split('T')[0]} /></div>
-                    <div className="form-group"><label>Giới tính</label><select value={editData.gender} onChange={e => setEditData({...editData, gender: e.target.value})}><option value="">Chọn giới tính</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option></select></div>
-                    <div className="form-group"><label>Trường học</label><input type="text" value={editData.school} onChange={e => setEditData({...editData, school: e.target.value})} /></div>
-                    <div className="form-group full-width"><label>Địa chỉ</label><input type="text" value={editData.address} onChange={e => setEditData({...editData, address: e.target.value})} /></div>
+                    <div className="profile-form-group">
+                      <div className="input-wrapper">
+                        <i className="fas fa-user"></i>
+                        <input
+                          type="text"
+                          name="fullName"
+                          value={editData.fullName}
+                          onChange={e => setEditData({...editData, fullName: e.target.value})}
+                          placeholder="Nhập họ và tên"
+                          className="profile-input"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="profile-form-group">
+                      <div className="input-wrapper">
+                        <i className="fas fa-phone"></i>
+                        <input
+                          type="tel"
+                          name="phoneNumber"
+                          value={editData.phoneNumber}
+                          onChange={e => setEditData({...editData, phoneNumber: e.target.value})}
+                          placeholder="Nhập số điện thoại"
+                          className="profile-input"
+                        />
+                      </div>
+                    </div>
+                    <div className="profile-form-group">
+                      <div className="input-wrapper">
+                        <i className="fas fa-calendar-alt"></i>
+                        <input
+                          type="date"
+                          name="birthDay"
+                          value={editData.birthDay}
+                          onChange={e => setEditData({...editData, birthDay: e.target.value})}
+                          max={new Date().toISOString().split('T')[0]}
+                          className="profile-input"
+                        />
+                      </div>
+                    </div>
+                    <div className="profile-form-group">
+                      <div className="input-wrapper">
+                        <i className="fas fa-venus-mars"></i>
+                        <select
+                          name="gender"
+                          value={editData.gender}
+                          onChange={e => setEditData({...editData, gender: e.target.value})}
+                          className="profile-select"
+                        >
+                          <option value="">Chọn giới tính</option>
+                          <option value="MALE">Nam</option>
+                          <option value="FEMALE">Nữ</option>
+                          <option value="OTHER">Khác</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="profile-form-group">
+                      <div className="input-wrapper">
+                        <i className="fas fa-school"></i>
+                        <input
+                          type="text"
+                          name="school"
+                          value={editData.school}
+                          onChange={e => setEditData({...editData, school: e.target.value})}
+                          placeholder="Tên trường học"
+                          className="profile-input"
+                        />
+                      </div>
+                    </div>
+                    <div className="profile-form-group full-width">
+                      <div className="input-wrapper">
+                        <i className="fas fa-map-marker-alt"></i>
+                        <input
+                          type="text"
+                          name="address"
+                          value={editData.address}
+                          onChange={e => setEditData({...editData, address: e.target.value})}
+                          placeholder="Địa chỉ chi tiết"
+                          className="profile-input"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div className="form-actions">
-                  <button type="button" className="cancel-button" onClick={handleCancelEdit} disabled={updateLoading}><FaTimes /> Hủy</button>
-                  <button type="submit" className="save-button" disabled={updateLoading}>{updateLoading ? 'Đang lưu...' : <><FaSave /> Lưu</>}</button>
+                  <button 
+                    type="button" 
+                    className="cancel-button" 
+                    onClick={handleCancelEdit} 
+                    disabled={updateLoading}
+                  >
+                    <FaTimes className="button-icon" />
+                    <span>Hủy</span>
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="save-button" 
+                    disabled={updateLoading}
+                  >
+                    {updateLoading ? (
+                      <span>Đang lưu...</span>
+                    ) : (
+                      <>
+                        <FaSave className="button-icon" />
+                        <span>Lưu thay đổi</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </form>
           )}

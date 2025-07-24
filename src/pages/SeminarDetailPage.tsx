@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Seminar } from '../types/Seminar';
-import { fetchSeminarDetails, placeOrder, PlaceOrderResponse } from '../api/SeminarApi';
+import { fetchSeminarDetails, placeOrder, fetchMyTickets, PlaceOrderResponse, UserTicket } from '../api/SeminarApi';
 import { getCurrentUser } from '../services/userService';
 import { getToken } from '../services/localStorageService';
 import Button from '../components/Button';
@@ -17,6 +17,8 @@ const SeminarDetailPage: React.FC = () => {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [description, setDescription] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userHasTicket, setUserHasTicket] = useState(false);
+  const [checkingTicket, setCheckingTicket] = useState(false);
   const [alert, setAlert] = useState<{
     show: boolean;
     type: 'success' | 'error' | 'warning';
@@ -41,6 +43,33 @@ const SeminarDetailPage: React.FC = () => {
         });
     }
   }, []);
+
+  // Function to check if user has a ticket for this seminar
+  const checkUserTicket = async (userId: number, seminarIdNum: number) => {
+    if (!userId || !seminarIdNum) return;
+    
+    setCheckingTicket(true);
+    try {
+      const tickets = await fetchMyTickets(userId);
+      console.log('🎫 All user tickets:', tickets);
+      console.log('🔍 Checking for seminar ID:', seminarIdNum);
+      
+      const hasTicket = tickets.some(ticket => {
+        console.log(`🎫 Ticket ${ticket.id}: seminarId=${ticket.seminarId}, status=${ticket.status}`);
+        const matches = ticket.seminarId === seminarIdNum && ticket.status === true;
+        console.log(`🎫 Ticket ${ticket.id} matches current seminar: ${matches}`);
+        return matches;
+      });
+      
+      setUserHasTicket(hasTicket);
+      console.log('✅ User has ticket for this seminar:', hasTicket);
+    } catch (error) {
+      console.error('Failed to check user tickets:', error);
+      setUserHasTicket(false);
+    } finally {
+      setCheckingTicket(false);
+    }
+  };
 
   // Reset booking state when component mounts or when user returns from payment
   useEffect(() => {
@@ -112,6 +141,14 @@ const SeminarDetailPage: React.FC = () => {
     })
     .finally(() => setLoading(false));
 }, [seminarId]);
+
+  // Check user ticket when both user and seminar data are available
+  useEffect(() => {
+    if (currentUser?.id && seminar?.id) {
+      console.log('🔄 Both user and seminar data available, checking ticket...');
+      checkUserTicket(currentUser.id, seminar.id);
+    }
+  }, [currentUser, seminar]);
 
   const handleBookTicket = async () => {
     if (!currentUser) {
@@ -218,6 +255,17 @@ const SeminarDetailPage: React.FC = () => {
 
   const isAuthenticated = !!getToken();
   const canBook = seminar && seminar.status === 'ONGOING' && seminar.statusApprove === 'APPROVED';
+  
+  // Check if we should show full details (Meeting URL and Form đăng ký)
+  // Only show if user has a valid ticket for THIS specific seminar
+  // Even if coming from tickets page with showDetails=true, we still validate ticket ownership
+  const showFullDetails = userHasTicket;
+  
+  console.log('🔍 Show full details decision:', {
+    userHasTicket,
+    showDetailsParam: searchParams.get('showDetails'),
+    finalDecision: showFullDetails
+  });
 
   // Function to reset booking state
   const resetBookingState = () => {
@@ -256,10 +304,39 @@ const SeminarDetailPage: React.FC = () => {
         <p><strong>Slot:</strong> {seminar.slot}</p>
         <p><strong>Thời gian bắt đầu:</strong> {new Date(seminar.startingTime).toLocaleString('vi-VN')}</p>
         <p><strong>Thời gian kết thúc:</strong> {new Date(seminar.endingTime).toLocaleString('vi-VN')}</p>
-        <p><strong>Meeting URL:</strong> <a href={seminar.meetingUrl} target="_blank" rel="noreferrer">{seminar.meetingUrl}</a></p>
-        <p><strong>Form đăng ký:</strong> <a href={seminar.formUrl} target="_blank" rel="noreferrer">{seminar.formUrl}</a></p>
+        
+        {/* Only show Meeting URL and Form đăng ký if user has ticket or showDetails=true */}
+        {showFullDetails ? (
+          <>
+            <p><strong>Meeting URL:</strong> <a href={seminar.meetingUrl} target="_blank" rel="noreferrer">{seminar.meetingUrl}</a></p>
+            <p><strong>Form đăng ký:</strong> <a href={seminar.formUrl} target="_blank" rel="noreferrer">{seminar.formUrl}</a></p>
+          </>
+        ) : (
+          <>
+            <p><strong>Meeting URL:</strong> <span style={{ color: '#888', fontStyle: 'italic' }}>Chỉ hiển thị sau khi mua vé</span></p>
+            <p><strong>Form đăng ký:</strong> <span style={{ color: '#888', fontStyle: 'italic' }}>Chỉ hiển thị sau khi mua vé</span></p>
+          </>
+        )}
+        
         <p><strong>Trạng thái:</strong> {seminar.status}</p>
         <p><strong>Trạng thái duyệt:</strong> {seminar.statusApprove}</p>
+        
+        {/* Show ticket status for logged-in users */}
+        {isAuthenticated && !checkingTicket && (
+          <p><strong>Trạng thái vé:</strong> 
+            <span style={{ 
+              color: userHasTicket ? '#28a745' : '#dc3545',
+              fontWeight: 'bold',
+              marginLeft: '8px'
+            }}>
+              {userHasTicket ? '✅ Đã mua vé' : '❌ Chưa mua vé'}
+            </span>
+          </p>
+        )}
+        
+        {checkingTicket && (
+          <p><strong>Trạng thái vé:</strong> <span style={{ color: '#888' }}>Đang kiểm tra...</span></p>
+        )}
       </div>
 
       {/* Booking Form */}

@@ -6,6 +6,8 @@ import {
  FaArrowUp,
 } from 'react-icons/fa';
 import QuizManagement from '../components/admin/QuizManagement';
+import UserManagement from '../components/admin/UserManagement';
+import SeminarApproval from '../components/admin/SeminarApproval';
 import '../styles/Admin.css';
 import UniversityManagementPage from '@/components/admin/UniversityManagementPage';
 import CareerManagement from '@/components/admin/CareerManagement';
@@ -16,7 +18,7 @@ type ActiveView = 'users' | 'quizzes' | 'events' |
                   'universities'| 'careers';
 
 const Admin = () => {
-  const [activeView, setActiveView] = useState<ActiveView>('quizzes');
+  const [activeView, setActiveView] = useState<ActiveView>('users');
   const [alerts, setAlerts] = useState<Array<{ id: number; type: AlertType; message: string }>>([]);
   const [showScrollTop, setShowScrollTop] = useState(false);
   useEffect(() => {
@@ -50,12 +52,18 @@ const Admin = () => {
 
   const renderContent = () => {
     switch (activeView) {
+      case 'users':
+        return <UserManagement />;
       case 'quizzes':
         return <QuizManagement onAlert={showAlert} />;
+      case 'events':
+        return <SeminarApproval onAlert={showAlert} />;
       case 'universities':
         return <UniversityManagementPage/>;
       case 'careers':
         return <CareerManagement/>;
+      default:
+        return null;
     }
   };
 

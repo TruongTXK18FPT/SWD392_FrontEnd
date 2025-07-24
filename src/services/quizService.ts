@@ -145,7 +145,7 @@ interface CacheItem {
 }
 
 class QuizService {
-  private baseURL = 'http://localhost:8080/api/v1/quiz';
+  private baseURL = 'http://localhost:8072/swd391/quiz';
 
   // Client-side cache for better performance
   private cache = new Map<string, CacheItem>();
@@ -459,7 +459,7 @@ class QuizService {
 
   // Get user's quiz results by email (for parent dashboard)
   async getUserResultsByEmail(email: string): Promise<{
-    userId: string;
+    userId: number;
     email: string;
     fullName: string;
     results: Array<{
@@ -477,7 +477,7 @@ class QuizService {
   }> {
     try {
       const response = await this.fetchAPI<{
-        userId: string;
+        userId: number;
         email: string;
         totalQuizzesTaken: number;
         quizResults: Array<{
@@ -517,7 +517,7 @@ class QuizService {
   }
   // Get quiz results by ID for management
   async getMyQuizResults(): Promise<{
-  userId: string;
+  userId: number;
   email: string;
   fullName: string;
   results: Array<{
@@ -535,7 +535,7 @@ class QuizService {
 }> {
   try {
     const response = await this.fetchAPI<{
-      userId: string;
+      userId: number;
       email: string;
       fullName: string;
       quizResults: Array<{

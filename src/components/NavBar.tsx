@@ -78,13 +78,6 @@ const NavBar = ({ isAuthenticated, onLogout, userRole }: NavBarProps) => {
                   <FaCalendarAlt />
                   <span className="nav-text">Quản lý sự kiện</span>
                 </Link>
-                <Link 
-                  to="/seminars" 
-                  className={`nav-item ${location.pathname === '/event' ? 'active' : ''}`}
-                >
-                  <FaCalendarAlt />
-                  <span className="nav-text">Sự kiện</span>
-                </Link>
               </>
             )}
 
@@ -179,10 +172,6 @@ const NavBar = ({ isAuthenticated, onLogout, userRole }: NavBarProps) => {
                     >
                       <FaUserCircle />
                     </Link>
-                    <Link to="/premium" className="auth-button premium">
-                      <FaCrown />
-                      <span className="auth-text">Premium</span>
-                    </Link>
                     <button onClick={onLogout} className="auth-button logout" title="Đăng xuất">
                       <FaSignOutAlt />
                     </button>
@@ -191,10 +180,6 @@ const NavBar = ({ isAuthenticated, onLogout, userRole }: NavBarProps) => {
               </>
             ) : (
               <>
-                <Link to="/premium" className="auth-button premium">
-                  <FaCrown />
-                  <span className="auth-text">Premium</span>
-                </Link>
                 <Link to="/login" className="auth-button login">
                   <FaSignInAlt />
                   <span className="auth-text">Đăng nhập</span>

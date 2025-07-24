@@ -64,15 +64,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       setTimeout(async () => {
         try {
           const userData = await getCurrentUser();
+          console.log('LoginForm: userData received:', userData);
           const userRole = userData?.role;
+          console.log('LoginForm: userRole extracted:', userRole);
 
           // Redirect based on user role (case-insensitive)
           if (userRole && userRole.toLowerCase() === "admin") {
             navigate("/admin");
+          } else if (userRole && userRole.toLowerCase() === "event_manager") {
+            navigate("/event-manager");
           } else {
             navigate("/");
           }
         } catch (error) {
+          console.error('LoginForm: Error getting user data:', error);
           navigate("/"); // Default redirect
         }
       }, 1500);
@@ -87,27 +92,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      const callbackUrl = OAuthConfig.redirectUri;
-      const authUrl = OAuthConfig.authUri;
-      const googleClientId = OAuthConfig.clientId;
-
-      const targetUrl = `${authUrl}?redirect_uri=${encodeURIComponent(
-        callbackUrl
-      )}&response_type=code&client_id=${googleClientId}&scope=openid%20email%20profile`;
-
-      window.location.href = targetUrl;
-    } catch (error) {
-      setAlert({
-        show: true,
-        type: "error",
-        message: "Đăng nhập Google thất bại",
-        description: "Có lỗi xảy ra khi đăng nhập với Google",
-      });
     }
   };
 
@@ -218,18 +202,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <div className="social-login">
             <div className="divider">
               <span>Hoặc đăng nhập với</span>
-            </div>
-
-            <div className="google-login-container">
-              <Button
-                variant="outline"
-                size="lg"
-                icon={<FaGoogle />}
-                onClick={handleGoogleLogin}
-                className="google-login-button"
-              >
-                Đăng nhập với Google
-              </Button>
             </div>
           </div>
 

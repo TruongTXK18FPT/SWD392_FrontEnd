@@ -1,9 +1,8 @@
 import axios from "axios";
 import { getToken, setToken, removeToken } from "./localStorageService";
-import { refreshAccessToken } from "./authService";
 
 const instance = axios.create({
-  baseURL: "http://localhost:8072", // Use gateway root, not /api/v1
+  baseURL: "http://localhost:8072",
 });
 
 let isRefreshing = false;
