@@ -95,27 +95,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const callbackUrl = OAuthConfig.redirectUri;
-      const authUrl = OAuthConfig.authUri;
-      const googleClientId = OAuthConfig.clientId;
-
-      const targetUrl = `${authUrl}?redirect_uri=${encodeURIComponent(
-        callbackUrl
-      )}&response_type=code&client_id=${googleClientId}&scope=openid%20email%20profile`;
-
-      window.location.href = targetUrl;
-    } catch (error) {
-      setAlert({
-        show: true,
-        type: "error",
-        message: "Đăng nhập Google thất bại",
-        description: "Có lỗi xảy ra khi đăng nhập với Google",
-      });
-    }
-  };
-
   return (
     <div className="login-container">
       {isLoading && (
@@ -223,18 +202,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <div className="social-login">
             <div className="divider">
               <span>Hoặc đăng nhập với</span>
-            </div>
-
-            <div className="google-login-container">
-              <Button
-                variant="outline"
-                size="lg"
-                icon={<FaGoogle />}
-                onClick={handleGoogleLogin}
-                className="google-login-button"
-              >
-                Đăng nhập với Google
-              </Button>
             </div>
           </div>
 

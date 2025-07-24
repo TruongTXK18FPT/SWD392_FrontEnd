@@ -39,7 +39,7 @@ export interface ChatResponse {
 }
 
 class ChatAiService {
-    private baseURL = 'http://localhost:8072/swd391/chatbox/chat';
+    private baseURL = 'http://localhost:8072/swd391/chatbox';
     private defaultHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
     };
@@ -83,14 +83,14 @@ class ChatAiService {
     }
 
     async getUserSessions(): Promise<string[]> {
-        const response = await axios.get<string[]>(`${this.baseURL}/sessions`, {
+        const response = await axios.get<string[]>(`${this.baseURL}/chat/sessions`, {
             headers: this.getHeaders(),
         });
         return response.data;
     }
 
     async deleteSession(sessionId: string): Promise<void> {
-        await axios.delete(`${this.baseURL}/${sessionId}`, {
+        await axios.delete(`${this.baseURL}/chat/${sessionId}`, {
             headers: this.getHeaders(),
         });
     }
@@ -98,7 +98,7 @@ class ChatAiService {
     async startNewSession(): Promise<ChatSession> {
         try {
             const response = await axios.post<ChatSession>(
-                `${this.baseURL}/start`,
+                `${this.baseURL}/chat/start`,
                 {},
                 { 
                     headers: this.getHeaders(),
@@ -127,7 +127,7 @@ class ChatAiService {
             const requestData = { message, sessionId };
 
             const response = await axios.post<ChatResponse>(
-                `${this.baseURL}/message`,
+                `${this.baseURL}/chat/message`,
                 requestData,
                 {
                     headers,
@@ -168,7 +168,7 @@ class ChatAiService {
 
         const response = await axios({
             method: 'get',
-            url: `${this.baseURL}/history/${sessionId}`,
+            url: `${this.baseURL}/chat/history/${sessionId}`,
             headers,
             validateStatus: () => true // Don't throw for any status codes
         });
@@ -264,7 +264,7 @@ class ChatAiService {
             }
 
             const response = await axios.post<BackendAnalysisResponse>(
-                `${this.baseURL}/analyze/${sessionId}`,
+                `${this.baseURL}/chat/analyze/${sessionId}`,
                 {},
                 { 
                     headers: this.getHeaders(),

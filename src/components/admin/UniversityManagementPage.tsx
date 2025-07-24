@@ -5,7 +5,7 @@ import '../../styles/UniversityManagementPage.css';
 import { getToken } from '@/services/localStorageService';
 import Pagination from '../Pagination';
 // University Service - API Client
-const BASE_URL = 'http://localhost:8080/api/v1/university/universities';
+const BASE_URL = 'http://localhost:8072/swd391/university/universities';
 
 interface UniversityDTO {
   name: string;
